@@ -34,3 +34,32 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+# 🛡️ ICT HUB CORE_COMMAND 
+
+Welcome to the **ICT HUB Master Dashboard**—a centralized administrative ecosystem designed to manage educational workflows with speed and precision. Built on the latest **Next.js 15** architecture.
+
+## 🚀 Key Features
+
+- **📡 Global Broadcast Terminal:** Deploy real-time notices and synchronize live class links (Zoom/Meet) across all student nodes instantly.
+- **📊 Dynamic Attendance Analytics:** Real-time visualization of daily attendance with interactive charts and automated record-keeping.
+- **🔐 Registry Terminal:** Full student enrollment management with secure credential synchronization and access control.
+- **📱 Responsive Command Unit:** Fully optimized for all devices, from desktop monitors to mobile terminals.
+- **⚡ Performance First:** Built with Server Actions and optimized MongoDB queries for sub-second latency.
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Database:** MongoDB with Mongoose ODM
+- **Animation:** Framer Motion
+- **Icons:** Lucide React
+- **Typography:** Rajdhani (Cyberpunk/Industrial aesthetic)
+
+## 🛠️ Getting Started
+
+First, clone the repository and install dependencies:
+
+```bash
+git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+cd your-repo-name
+npm install
