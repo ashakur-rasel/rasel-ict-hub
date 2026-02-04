@@ -90,9 +90,9 @@ export default function AdminMessenger() {
                   <div style={{
                         width: selectedStudent ? '350px' : '100%',
                         display: selectedStudent && typeof window !== 'undefined' && window.innerWidth < 768 ? 'none' : 'flex',
-                        flexDirection: 'column', backgroundColor: '#f8fafc', borderRight: '1px solid #e2e8f0'
+                        flexDirection: 'column', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0'
                   }}>
-                        <div style={{ padding: '25px', backgroundColor: '#0ea5e9', color: 'white' }}>
+                        <div style={{ padding: '25px', backgroundColor: '#00669a', color: 'white' }}>
                               <h2 style={{ fontWeight: '900', fontSize: '24px', letterSpacing: '1px', margin: 0 }}>INBOX_MESSAGES</h2>
                               <div style={{ position: 'relative', marginTop: '15px' }}>
                                     <Search style={{ position: 'absolute', left: '12px', top: '12px', color: '#94a3b8' }} size={18} />
@@ -100,7 +100,7 @@ export default function AdminMessenger() {
                                           type="text" placeholder="Search student name..."
                                           value={searchTerm}
                                           onChange={(e) => setSearchTerm(e.target.value)}
-                                          style={{ width: '100%', padding: '12px 12px 12px 40px', borderRadius: '12px', border: 'none', color: '#1e293b', fontWeight: '700', outline: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}
+                                          style={{ width: '100%', backgroundColor: '#ddffc3', padding: '12px 12px 12px 40px', borderRadius: '12px', border: 'none', color: '#1e293b', fontWeight: '700', outline: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}
                                     />
                               </div>
                         </div>
