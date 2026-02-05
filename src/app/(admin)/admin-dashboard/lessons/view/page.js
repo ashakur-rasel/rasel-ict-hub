@@ -47,21 +47,21 @@ export default function StudyPortal() {
       };
 
       return (
-            <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#1e293b', fontFamily: 'var(--font-rajdhani), sans-serif', padding: '20px' }}>
+            <div style={{ minHeight: '100vh', backgroundColor: '#a1f1f7e4', color: '#1e293b', fontFamily: 'var(--font-rajdhani), sans-serif', padding: '20px' }}>
 
                   {/* Header */}
-                  <div style={{ maxWidth: '1000px', margin: '0 auto 30px', textAlign: 'center' }}>
+                  <div style={{ maxWidth: '1000px', backgroundColor: '#5077d3', margin: '0 auto 30px', textAlign: 'center', borderRadius: '12px', padding: '15px' }}>
                         <h1 style={{ fontSize: 'clamp(24px, 5vw, 32px)', fontWeight: '900', color: '#0f172a' }}>ICT_COMMAND_CENTER</h1>
-                        <p style={{ color: '#0ea5e9', fontWeight: 'bold', fontSize: '12px', letterSpacing: '2px' }}>VIRTUAL LECTURE MODE</p>
+                        <p style={{ color: '#1a282f', fontWeight: 'bold', fontSize: '12px', letterSpacing: '2px' }}>VIRTUAL LECTURE MODE</p>
                   </div>
 
                   {/* Selectors */}
                   <div style={{ maxWidth: '1000px', margin: '0 auto 30px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-                        <select onChange={(e) => { setSelectedChapter(lessons.find(l => l.chapter === e.target.value)); setSelectedTopic(null); }} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid #e2e8f0', fontWeight: 'bold', outline: 'none' }}>
+                        <select onChange={(e) => { setSelectedChapter(lessons.find(l => l.chapter === e.target.value)); setSelectedTopic(null); }} style={{ width: '100%', backgroundColor: '#f9ffa9', padding: '15px', borderRadius: '12px', border: '2px solid #000000', fontWeight: 'bold', outline: 'none' }}>
                               <option value="">-- SELECT CHAPTER --</option>
                               {lessons.map(l => <option key={l.chapter} value={l.chapter}>CH-{l.chapter}: {l.chapterTitle}</option>)}
                         </select>
-                        <select disabled={!selectedChapter} onChange={(e) => setSelectedTopic(selectedChapter.topics.find(t => t._id === e.target.value))} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid #e2e8f0', fontWeight: 'bold', outline: 'none' }}>
+                        <select disabled={!selectedChapter} onChange={(e) => setSelectedTopic(selectedChapter.topics.find(t => t._id === e.target.value))} style={{ width: '100%', backgroundColor: '#f9ffa9', padding: '15px', borderRadius: '12px', border: '2px solid #000000', fontWeight: 'bold', outline: 'none' }}>
                               <option value="">-- SELECT TOPIC --</option>
                               {selectedChapter?.topics.map(t => <option key={t._id} value={t._id}>{t.topicName}</option>)}
                         </select>

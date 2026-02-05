@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import Exam from "@/models/Exam";
+import Exam from "@/models/Result";
 
 // ১. সব এক্সাম এবং সিঙ্গেল এক্সাম দেখা
 export async function GET(req) {
