@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowLeft, Sparkles, ZoomIn, ZoomOut, RotateCcw, X, CheckCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Sparkles, ZoomIn, X, CheckCircle } from "lucide-react";
 import confetti from 'canvas-confetti';
 
 function TopicContent() {
@@ -15,6 +15,7 @@ function TopicContent() {
       const [loading, setLoading] = useState(true);
       const [isFinished, setIsFinished] = useState(false);
       const [zoomImage, setZoomImage] = useState(null);
+      const [student, setStudent] = useState(null);
 
       const getDirectLink = (url) => {
             if (!url) return "";
@@ -26,6 +27,16 @@ function TopicContent() {
       };
 
       useEffect(() => {
+            // FIX: Identify the logged-in student
+            const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+            if (!storedUser._id) {
+                  window.location.href = "/login";
+                  return;
+            }
+            setStudent(storedUser);
+
+            if (!chapterId || !topicId) return;
+
             // 1. Fetch Lesson Data
             fetch(`/api/lessons?chapter=${chapterId}`)
                   .then(res => res.json())
@@ -37,7 +48,7 @@ function TopicContent() {
                         setLoading(false);
                   });
 
-            // 2. Check if already finished in localStorage
+            // 2. Check if already finished in localStorage for this student
             const completed = JSON.parse(localStorage.getItem("completedTopics") || "[]");
             if (completed.includes(topicId)) {
                   setIsFinished(true);
@@ -47,7 +58,7 @@ function TopicContent() {
       const handleComplete = () => {
             setIsFinished(true);
 
-            // Save to localStorage so Lessons Page can see it
+            // Save to localStorage specifically for the active student progress tracking
             const completed = JSON.parse(localStorage.getItem("completedTopics") || "[]");
             if (!completed.includes(topicId)) {
                   completed.push(topicId);
@@ -80,7 +91,7 @@ function TopicContent() {
                         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="bg-white rounded-[2.5rem] p-6 md:p-10 shadow-xl shadow-slate-200/50 border border-slate-100">
                               <div
                                     className="prose prose-slate max-w-none theory-content"
-                                    dangerouslySetInnerHTML={{ __html: topic?.content }} //
+                                    dangerouslySetInnerHTML={{ __html: topic?.content }}
                               />
 
                               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -114,13 +125,36 @@ function TopicContent() {
                               )}
                         </button>
                   </main>
+
+                  {/* Image Zoom Overlay */}
+                  <AnimatePresence>
+                        {zoomImage && (
+                              <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+                                    onClick={() => setZoomImage(null)}
+                              >
+                                    <button className="absolute top-10 right-10 text-white hover:rotate-90 transition-transform">
+                                          <X size={40} />
+                                    </button>
+                                    <motion.img
+                                          initial={{ scale: 0.8 }}
+                                          animate={{ scale: 1 }}
+                                          src={zoomImage}
+                                          className="max-w-full max-h-full rounded-2xl shadow-2xl"
+                                    />
+                              </motion.div>
+                        )}
+                  </AnimatePresence>
             </div>
       );
 }
 
 export default function StudyPortalView() {
       return (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<div className="h-screen flex items-center justify-center font-black animate-pulse text-blue-600">LOADING MODULE...</div>}>
                   <TopicContent />
             </Suspense>
       );

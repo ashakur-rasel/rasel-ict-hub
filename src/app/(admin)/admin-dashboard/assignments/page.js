@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
       PlusCircle, History, Trash2, Edit3,
-      Calendar, Clock, Eye, X, CheckCircle2, ListOrdered, Info, Loader2, Save, XCircle, AlertTriangle, Link as LinkIcon
+      Calendar, Clock, Eye, X, CheckCircle2, ListOrdered, Info, Loader2, Save, XCircle, AlertTriangle, Link as LinkIcon, Users
 } from "lucide-react";
 import Link from "next/link";
 
@@ -28,7 +28,9 @@ export default function AssignmentAdmin() {
             try {
                   const res = await fetch('/api/assignments');
                   const data = await res.json();
-                  if (data.success) setAssignments(data.assignments);
+                  if (data.success) {
+                        setAssignments(data.assignments || data.data || []);
+                  }
             } catch (e) { console.error("Sync Error"); }
       };
 
@@ -120,7 +122,7 @@ export default function AssignmentAdmin() {
                               <p style={{ color: '#0ea5e9', fontSize: '12px', fontWeight: '900', letterSpacing: '2px', marginTop: '5px' }}>TASK_MANAGEMENT_STATION</p>
                         </div>
                         <div style={{ backgroundColor: '#f1f5f9', padding: '10px 20px', borderRadius: '14px', border: '1px solid #e2e8f0', color: '#1e293b', fontWeight: '900', fontSize: '14px' }}>
-                              TOTAL: {assignments.length}
+                              TOTAL: {assignments?.length || 0}
                         </div>
                   </div>
 
@@ -170,7 +172,7 @@ export default function AssignmentAdmin() {
                   </div>
 
                   <div style={{ display: 'grid', gap: '20px' }}>
-                        {assignments.map((item, index) => (
+                        {(assignments || []).map((item, index) => (
                               <div key={item._id} style={{ backgroundColor: 'white', padding: '25px', borderRadius: '25px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', transition: '0.2s' }}>
                                     <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flex: 1, minWidth: '300px' }}>
                                           <div style={{ backgroundColor: '#f1f5f9', color: '#0ea5e9', minWidth: '45px', height: '45px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', border: '1px solid #e2e8f0' }}>{index + 1}</div>
@@ -184,7 +186,12 @@ export default function AssignmentAdmin() {
                                     </div>
                                     <div style={{ display: 'flex', gap: '12px' }}>
                                           <button onClick={() => setPreviewItem(item)} style={{ padding: '12px', color: '#0ea5e9', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', cursor: 'pointer' }}><Eye size={20} /></button>
-                                          <Link href={`/admin-dashboard/assignments/submissions/${item._id}`} style={{ padding: '12px', color: '#10b981', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px' }}><CheckCircle2 size={20} /></Link>
+
+                                          {/* LINK TO SEE ALL STUDENT SUBMISSIONS */}
+                                          <Link href={`/admin-dashboard/assignments/submissions/${item._id}`} style={{ padding: '12px', color: '#10b981', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px' }}>
+                                                <Users size={20} />
+                                          </Link>
+
                                           <button onClick={() => startEdit(item)} style={{ padding: '12px', color: '#f59e0b', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '12px', cursor: 'pointer' }}><Edit3 size={20} /></button>
                                           <button onClick={() => setConfirmDelete(item._id)} style={{ padding: '12px', color: '#ef4444', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', cursor: 'pointer' }}><Trash2 size={20} /></button>
                                     </div>

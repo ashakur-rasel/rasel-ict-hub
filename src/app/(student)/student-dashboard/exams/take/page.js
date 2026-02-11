@@ -14,25 +14,27 @@ function ExamSession() {
       const [userAnswers, setUserAnswers] = useState({});
       const [timeLeft, setTimeLeft] = useState(0);
       const [isSubmitting, setIsSubmitting] = useState(false);
-      const [lockInfo, setLockInfo] = useState(null); // To store time-lock data
+      const [lockInfo, setLockInfo] = useState(null);
+      const [currentUser, setCurrentUser] = useState(null); // Added for dynamic identity
 
       useEffect(() => {
+            // FIX: Get the unique user data from memory instead of hardcoded ID
+            const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+            setCurrentUser(storedUser);
+
             if (!examId) return;
             fetch(`/api/exams?id=${examId}`)
                   .then(res => res.json())
                   .then(json => {
-                        // CASE 1: Exam is locked because it's in the future
                         if (json.isLocked) {
                               setLockInfo({ startTime: json.startTime });
                               return;
                         }
 
-                        // CASE 2: Success
                         if (json.success) {
                               setExam(json.exam);
                               setTimeLeft(json.exam.duration * 60);
                         } else {
-                              // If there is another error, go back
                               router.replace('/student-dashboard/exams');
                         }
                   });
@@ -52,7 +54,7 @@ function ExamSession() {
       };
 
       const handleSubmit = async () => {
-            if (isSubmitting) return;
+            if (isSubmitting || !currentUser) return;
             setIsSubmitting(true);
 
             const formattedAnswers = Object.entries(userAnswers).map(([qId, opt]) => ({
@@ -62,8 +64,9 @@ function ExamSession() {
 
             const resultPayload = {
                   examId: exam._id,
-                  studentId: "698191543aca7a7841264ed7", // replace with dynamic student ID
-                  studentName: "A R RASEL", // replace with dynamic name
+                  // FIX: Using dynamic identity from the logged-in student
+                  studentId: currentUser._id,
+                  studentName: currentUser.name,
                   answers: formattedAnswers
             };
 
@@ -83,7 +86,6 @@ function ExamSession() {
             }
       };
 
-      // --- RENDER LOCKED STATE ---
       if (lockInfo) return (
             <div className="h-screen bg-[#0f172a] flex flex-col items-center justify-center p-6 text-center">
                   <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="bg-slate-900 border border-white/5 p-10 rounded-[3rem] shadow-2xl space-y-6">
@@ -112,7 +114,6 @@ function ExamSession() {
 
       return (
             <div className="min-h-screen bg-[#0f172a] text-white p-4">
-                  {/* Timer Header */}
                   <div className={`sticky top-4 z-[100] flex justify-between items-center p-5 rounded-[2rem] border backdrop-blur-xl mb-10 ${timeLeft < 30 ? 'bg-red-600 border-white' : 'bg-slate-900/90 border-white/10 shadow-2xl'}`}>
                         <div className="flex items-center gap-3">
                               <Clock className={timeLeft < 30 ? "animate-spin" : ""} />
@@ -125,7 +126,6 @@ function ExamSession() {
                         </div>
                   </div>
 
-                  {/* Questions Section */}
                   <div className="space-y-16 max-w-2xl mx-auto">
                         {exam.questions.map((q, idx) => (
                               <div key={q._id} className="space-y-6">
@@ -153,7 +153,6 @@ function ExamSession() {
                               </div>
                         ))}
 
-                        {/* --- BIG VISIBLE SUBMIT SECTION --- */}
                         <div className="mt-20 p-10 bg-slate-900 border-2 border-dashed border-white/10 rounded-[3rem] text-center space-y-6">
                               <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-500">
                                     <ShieldCheck size={32} />
@@ -179,5 +178,5 @@ function ExamSession() {
 }
 
 export default function ExamPage() {
-      return <Suspense><ExamSession /></Suspense>
+      return <Suspense fallback={<div className="h-screen bg-[#0f172a] text-blue-500 flex items-center justify-center font-black animate-pulse uppercase tracking-[0.3em]">INITIALISING ARENA...</div>}><ExamSession /></Suspense>
 }

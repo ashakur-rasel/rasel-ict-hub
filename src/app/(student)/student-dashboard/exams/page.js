@@ -8,25 +8,43 @@ export default function ExamListPage() {
       const [exams, setExams] = useState([]);
       const [loading, setLoading] = useState(true);
       const [currentTime, setCurrentTime] = useState(new Date());
-      const studentId = "698191543aca7a7841264ed7"; // Replace with dynamic context
 
       useEffect(() => {
-            // 1. Refresh the clock every second for the countdowns
+            // 1. Get the REAL logged-in user from memory instead of hardcoded ID
+            const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+            const dynamicId = storedUser._id;
+
+            if (!dynamicId) {
+                  window.location.href = "/login";
+                  return;
+            }
+
+            // Refresh the clock every second for the countdowns
             const timer = setInterval(() => setCurrentTime(new Date()), 1000);
 
             const loadData = async () => {
-                  const res = await fetch('/api/exams');
-                  const data = await res.json();
+                  try {
+                        const res = await fetch('/api/exams');
+                        const data = await res.json();
 
-                  if (data.success) {
-                        const updatedExams = await Promise.all(data.exams.map(async (exam) => {
-                              const checkRes = await fetch(`/api/results?studentId=${studentId}&examId=${exam._id}`);
-                              const checkJson = await checkRes.json();
-                              return { ...exam, isFinished: checkJson.alreadySubmitted, userResultId: checkJson.resultId };
-                        }));
-                        setExams(updatedExams);
+                        if (data.success) {
+                              // Using the dynamicId to check if THIS specific student finished the exam
+                              const updatedExams = await Promise.all(data.exams.map(async (exam) => {
+                                    const checkRes = await fetch(`/api/results?studentId=${dynamicId}&examId=${exam._id}`);
+                                    const checkJson = await checkRes.json();
+                                    return {
+                                          ...exam,
+                                          isFinished: checkJson.alreadySubmitted,
+                                          userResultId: checkJson.resultId
+                                    };
+                              }));
+                              setExams(updatedExams);
+                        }
+                  } catch (error) {
+                        console.error("Transmission Error:", error);
+                  } finally {
+                        setLoading(false);
                   }
-                  setLoading(false);
             };
 
             loadData();
@@ -52,7 +70,7 @@ export default function ExamListPage() {
             return { state: "live" };
       };
 
-      if (loading) return <div className="h-screen flex items-center justify-center font-black animate-pulse text-blue-500 uppercase tracking-widest">Initialising Arena...</div>;
+      if (loading) return <div className="h-screen bg-[#0f172a] flex items-center justify-center font-black animate-pulse text-blue-500 uppercase tracking-widest">Initialising Arena...</div>;
 
       return (
             <div className="p-4 space-y-6">

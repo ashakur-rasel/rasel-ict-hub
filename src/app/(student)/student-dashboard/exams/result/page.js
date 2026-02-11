@@ -13,29 +13,38 @@ function ResultView() {
       const [leaderboard, setLeaderboard] = useState([]);
       const [loading, setLoading] = useState(true);
       const [view, setView] = useState("personal");
+      const [currentUser, setCurrentUser] = useState(null); // Added for dynamic identity
 
       useEffect(() => {
+            // FIX: Get the unique user data from memory for identification
+            const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+            setCurrentUser(storedUser);
+
             if (!resultId) return;
+
             fetch(`/api/results?id=${resultId}`)
                   .then(res => res.json())
                   .then(json => {
                         if (json.success) {
                               setResult(json.data);
+                              // Fetch leaderboard for the same exam
                               fetch(`/api/results?examId=${json.data.examId._id}`)
                                     .then(res => res.json())
-                                    .then(lData => { if (lData.success) setLeaderboard(lData.results); });
+                                    .then(lData => {
+                                          if (lData.success) setLeaderboard(lData.results || lData.data || []);
+                                    });
                         }
                         setLoading(false);
                   });
       }, [resultId]);
 
-      if (loading) return <div className="h-screen bg-[#0f172a] flex items-center justify-center font-black animate-pulse text-blue-500">GENERATING SCORECARD...</div>;
-      if (!result) return <div className="h-screen bg-[#0f172a] text-white flex items-center justify-center font-black">RESULT NOT FOUND</div>;
+      if (loading) return <div className="h-screen bg-[#0f172a] flex items-center justify-center font-black animate-pulse text-blue-500 uppercase tracking-widest">Generating Scorecard...</div>;
+      if (!result) return <div className="h-screen bg-[#0f172a] text-white flex items-center justify-center font-black uppercase tracking-widest">Result Not Found</div>;
 
       return (
             <div className="min-h-screen bg-[#0f172a] text-white p-4 pb-24">
                   {/* Switcher Header */}
-                  <div className="flex bg-slate-900 p-2 rounded-[2.5rem] border border-white/5 mb-8 mt-6 shadow-2xl">
+                  <div className="flex bg-slate-900 p-2 rounded-[2.5rem] border border-white/5 mb-8 mt-6 shadow-2xl max-w-lg mx-auto">
                         <button onClick={() => setView("personal")} className={`flex-1 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${view === 'personal' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500'}`}>
                               <Medal size={14} /> Review Answers
                         </button>
@@ -46,7 +55,7 @@ function ResultView() {
 
                   <AnimatePresence mode="wait">
                         {view === "personal" ? (
-                              <motion.div key="p" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+                              <motion.div key="p" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 max-w-4xl mx-auto">
 
                                     {/* Score Hero Section */}
                                     <div className="bg-gradient-to-br from-slate-900 to-blue-900 p-8 rounded-[3rem] border border-white/10 text-center shadow-2xl relative overflow-hidden">
@@ -72,7 +81,6 @@ function ResultView() {
 
                                           {result.answers.map((ans, idx) => {
                                                 const isCorrect = ans.selectedOption === ans.correctAnswer;
-                                                // Find original question to get all options
                                                 const originalQuestion = result.examId.questions.find(q => q._id === ans.questionId);
 
                                                 return (
@@ -113,28 +121,32 @@ function ResultView() {
                                     </div>
                               </motion.div>
                         ) : (
-                              <motion.div key="g" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-                                    {/* Leaderboard UI - already implemented correctly */}
-                                    {leaderboard.map((entry, index) => (
-                                          <div key={entry._id} className={`p-5 rounded-[2rem] border-2 flex justify-between items-center ${entry.studentId === result.studentId ? 'bg-blue-600/10 border-blue-500 shadow-xl' : 'bg-slate-900 border-white/5'}`}>
-                                                <div className="flex items-center gap-4">
-                                                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black ${index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-600' : 'bg-white/10'}`}>
-                                                            {index + 1}
+                              <motion.div key="g" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 max-w-lg mx-auto">
+                                    {leaderboard.map((entry, index) => {
+                                          // FIX: Identify the student who is logged in via currentUser._id
+                                          const isMe = entry.studentId === currentUser?._id;
+
+                                          return (
+                                                <div key={entry._id} className={`p-5 rounded-[2rem] border-2 flex justify-between items-center transition-all ${isMe ? 'bg-blue-600/10 border-blue-500 shadow-xl' : 'bg-slate-900 border-white/5'}`}>
+                                                      <div className="flex items-center gap-4">
+                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black ${index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-600' : 'bg-white/10'}`}>
+                                                                  {index + 1}
+                                                            </div>
+                                                            <p className="font-black uppercase text-sm">{entry.studentName} {isMe && "(YOU)"}</p>
                                                       </div>
-                                                      <p className="font-black uppercase text-sm">{entry.studentName}</p>
+                                                      <div className="text-right">
+                                                            <p className="text-xl font-black text-blue-400">{entry.score}</p>
+                                                            <p className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Points</p>
+                                                      </div>
                                                 </div>
-                                                <div className="text-right">
-                                                      <p className="text-xl font-black text-blue-400">{entry.score}</p>
-                                                      <p className="text-[8px] font-black text-gray-500 uppercase">Points</p>
-                                                </div>
-                                          </div>
-                                    ))}
+                                          );
+                                    })}
                               </motion.div>
                         )}
                   </AnimatePresence>
 
                   {/* Navigation Footer */}
-                  <div className="mt-16 grid grid-cols-2 gap-4">
+                  <div className="mt-16 grid grid-cols-2 gap-4 max-w-4xl mx-auto">
                         <button onClick={() => router.push('/student-dashboard')} className="bg-slate-900 p-6 rounded-[2.5rem] font-black uppercase text-[10px] border border-white/10 flex flex-col items-center gap-2 tracking-widest active:scale-95 transition-all">
                               <Home size={20} /> Back Home
                         </button>
@@ -147,5 +159,5 @@ function ResultView() {
 }
 
 export default function ResultPage() {
-      return <Suspense><ResultView /></Suspense>
+      return <Suspense fallback={<div className="h-screen bg-[#0f172a] text-blue-500 flex items-center justify-center font-black animate-pulse">BOOTING SCORECARD...</div>}><ResultView /></Suspense>
 }

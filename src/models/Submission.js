@@ -2,18 +2,20 @@ import mongoose from "mongoose";
 
 const SubmissionSchema = new mongoose.Schema({
       assignmentId: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId, // Fixed Reference
             ref: "Assignment",
-            required: true
+            required: true,
       },
+      studentId: { type: String, required: true },
       studentName: { type: String, required: true },
       studentEmail: { type: String, required: true },
-      content: { type: String }, // স্টুডেন্টের লেখা টেক্সট বা কোড
-      attachment: { type: String }, // স্টুডেন্টের ড্রাইভ লিঙ্ক
+      submissionLink: { type: String }, // For Drive/GitHub links
+      attachment: { type: String },     // Keep for compatibility
       submittedAt: { type: Date, default: Date.now },
       marks: { type: Number, default: 0 },
       feedback: { type: String, default: "" },
-      status: { type: String, default: "Pending" } // Pending, Marked
+      isMarked: { type: Boolean, default: false },
 });
 
+// Singleton pattern to prevent re-definition error in Next.js
 export default mongoose.models.Submission || mongoose.model("Submission", SubmissionSchema);

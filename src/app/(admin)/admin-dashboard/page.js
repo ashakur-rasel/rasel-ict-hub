@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
       Activity, Users, BookOpen, X, BarChart3,
       Loader2, Zap, Trophy, Target, Globe, ArrowLeft,
-      Mail, Phone, School, TrendingUp, AlertCircle, FileSpreadsheet, Edit3, Save, Star, Award
+      Mail, Phone, School, TrendingUp, AlertCircle, FileSpreadsheet, Edit3, Save, Star, Award, FileText, ClipboardList
 } from "lucide-react";
 
 import AttendanceCharts from "@/components/AttendanceCharts";
@@ -22,6 +22,9 @@ export default function AdminDashboard() {
       const [donutData, setDonutData] = useState([]);
       const [overallRate, setOverallRate] = useState("0");
       const [activeChapters, setActiveChapters] = useState(0);
+
+      const [totalExams, setTotalExams] = useState(0);
+      const [totalAssignments, setTotalAssignments] = useState(0);
 
       const [topAttendance, setTopAttendance] = useState(null);
       const [topExam, setTopExam] = useState(null);
@@ -42,7 +45,14 @@ export default function AdminDashboard() {
                   const resultsRes = await fetch('/api/results');
                   const resultsData = await resultsRes.json();
 
-                  // ১. Attendance Ranking Logic
+                  const examsRes = await fetch('/api/exams');
+                  const examsData = await examsRes.json();
+                  if (examsData.success) setTotalExams(examsData.exams?.length || 0);
+
+                  const assignRes = await fetch('/api/assignments');
+                  const assignData = await assignRes.json();
+                  if (assignData.success) setTotalAssignments(assignData.assignments?.length || 0);
+
                   if (historyData.success && historyData.records.length > 0) {
                         const records = historyData.records;
                         setActiveChapters(records.length);
@@ -64,7 +74,6 @@ export default function AdminDashboard() {
                         setPerformance(prev => ({ ...prev, interaction: parseFloat(rate) }));
                   }
 
-                  // ২. Exam Ranking Logic (Dynamic)
                   if (resultsData.success && resultsData.results?.length > 0) {
                         const sortedResults = [...resultsData.results].sort((a, b) => b.score - a.score);
                         const bestExam = sortedResults[0];
@@ -73,10 +82,9 @@ export default function AdminDashboard() {
                         const avgExam = (resultsData.results.reduce((acc, r) => acc + (r.score / r.totalQuestions), 0) / resultsData.results.length * 100).toFixed(0);
                         setPerformance(prev => ({ ...prev, exams: parseFloat(avgExam) }));
                   } else {
-                        setTopExam(null); // ডাটা না থাকলে নাল
+                        setTopExam(null);
                   }
 
-                  // ৩. Assignment Ranking (Future Placeholder)
                   setTopAssignment(null);
 
                   const statsRes = await fetch('/api/attendance/stats', { cache: 'no-store' });
@@ -151,15 +159,16 @@ export default function AdminDashboard() {
                         {!selectedStudentReport ? (
                               <motion.div key="main" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
 
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '20px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
                                           <StatCard label="Total Nodes" value={loading ? "..." : students.length} icon={<Users size={30} color="#0ea5e9" />} trend="Network_Active" color="#0ea5e9" />
                                           <StatCard label="Total Sessions" value={loading ? "..." : activeChapters} icon={<Zap size={30} color="#f59e0b" />} trend="Live_Archive" color="#f59e0b" />
                                           <StatCard label="Avg. Attendance" value={`${overallRate}%`} icon={<Activity size={30} color="#10b981" />} trend="Sync_Stable" color="#10b981" />
+                                          <StatCard label="Exam Records" value={loading ? "..." : totalExams} icon={<ClipboardList size={30} color="#8b5cf6" />} trend="Arena_Active" color="#8b5cf6" />
+                                          <StatCard label="Assignment Sets" value={loading ? "..." : totalAssignments} icon={<FileText size={30} color="#ec4899" />} trend="Mission_Archive" color="#ec4899" />
                                           <StatCard label="Integrity" value="100%" icon={<Target size={30} color="#ef4444" />} trend="Secure_Protocol" color="#ef4444" />
                                     </div>
 
-                                    {/* Rank Hub - Only Dynamic Data */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
                                           <TopStationCard title="ATTENDANCE_KING" name={topAttendance?.name} id={topAttendance?.studentId} color="#10b981" icon={<Trophy size={24} />} />
                                           <TopStationCard title="EXAM_TOPPER" name={topExam?.name} id={topExam?.studentId} color="#3b82f6" icon={<Star size={24} />} />
                                           <TopStationCard title="ASSIGNMENT_PRO" name={topAssignment?.name} id={topAssignment?.studentId} color="#a855f7" icon={<Award size={24} />} />
@@ -182,7 +191,7 @@ export default function AdminDashboard() {
                                     </div>
 
                                     <div style={{ backgroundColor: '#0f172a', border: '2px solid #1e293b', borderRadius: '40px', overflow: 'hidden' }}>
-                                          <div style={{ padding: '20px 30px', backgroundColor: '#1e293b', color: '#38bdf8', fontWeight: '900', fontSize: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                          <div style={{ padding: '20px 30px', backgroundColor: '#1e293b', color: '#38bdf8', fontWeight: '900', fontSize: '14px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
                                                 <span>STUDENT_REGISTRY_TERMINAL</span>
                                                 <button onClick={exportToCSV} style={{ background: '#10b981', color: '#020617', border: 'none', padding: '8px 15px', borderRadius: '10px', fontSize: '11px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                       <FileSpreadsheet size={16} /> EXPORT_CSV
@@ -206,7 +215,7 @@ export default function AdminDashboard() {
                                                                         <td style={{ padding: '15px 20px' }}>
                                                                               <button onClick={() => handleStudentClick(student)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: 0 }}>
                                                                                     <div style={{ width: '35px', height: '35px', borderRadius: '10px', backgroundColor: '#3b82f6', color: "white", display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900' }}>{student.name[0]}</div>
-                                                                                    <div>
+                                                                                    <div style={{ textAlign: 'left' }}>
                                                                                           <span style={{ fontWeight: '800', color: "white", display: 'block' }}>{student.name}</span>
                                                                                           <span style={{ fontSize: '10px', color: '#0ea5e9' }}>OPEN_REPORT</span>
                                                                                     </div>
@@ -227,7 +236,6 @@ export default function AdminDashboard() {
                                     </div>
                               </motion.div>
                         ) : (
-                              /* --- Profile View --- */
                               <motion.div key="report" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
                                     <button onClick={() => setSelectedStudentReport(null)} style={{ width: 'fit-content', padding: '12px 25px', backgroundColor: '#3b82f6', color: "white", border: 'none', borderRadius: '15px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                                           <ArrowLeft size={20} /> BACK_TO_TERMINAL
@@ -243,7 +251,7 @@ export default function AdminDashboard() {
                                                       <DetailRow icon={<Phone size={16} color="#0ea5e9" />} text={selectedStudentReport.phone} />
                                                 </div>
                                           </div>
-                                          <div style={{ backgroundColor: '#0f172a', padding: '35px', borderRadius: '40px', border: '1px solid #1e293b', gridColumn: 'span 2' }}>
+                                          <div style={{ backgroundColor: '#0f172a', padding: '35px', borderRadius: '40px', border: '1px solid #1e293b', gridColumn: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
                                                 <h3 style={{ textTransform: 'uppercase', color: '#10b981', fontWeight: '900', marginBottom: '35px', display: 'flex', alignItems: 'center', gap: '10px' }}><TrendingUp size={20} /> PERFORMANCE_PULSE</h3>
                                                 {reportLoading ? <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" color="#10b981" /></div> : (
                                                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px' }}>
@@ -258,11 +266,10 @@ export default function AdminDashboard() {
                         )}
                   </AnimatePresence>
 
-                  {/* EDIT MODAL */}
                   <AnimatePresence>
                         {editingNode && (
                               <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(2, 6, 23, 0.9)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-                                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ backgroundColor: '#0f172a', border: '1px solid #3b82f6', borderRadius: '24px', width: '100%', maxWidth: '600px', padding: '40px', position: 'relative' }}>
+                                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ backgroundColor: '#0f172a', border: '1px solid #3b82f6', borderRadius: '24px', width: '100%', maxWidth: '600px', padding: 'clamp(20px, 5vw, 40px)', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
                                           <button onClick={() => setEditingNode(null)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><X size={24} /></button>
                                           <form onSubmit={handleUpdateNode} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                                                 <EditInput label="Name" value={editingNode.name} onChange={(v) => setEditingNode({ ...editingNode, name: v })} />
@@ -270,7 +277,7 @@ export default function AdminDashboard() {
                                                 <EditInput label="Email" value={editingNode.email} onChange={(v) => setEditingNode({ ...editingNode, email: v })} />
                                                 <EditInput label="Phone" value={editingNode.phone} onChange={(v) => setEditingNode({ ...editingNode, phone: v })} />
                                                 <EditInput label="College" value={editingNode.college} onChange={(v) => setEditingNode({ ...editingNode, college: v })} span={2} />
-                                                <button type="submit" disabled={updateLoading} style={{ gridColumn: '1 / -1', padding: '16px', backgroundColor: '#0ea5e9', color: '#020617', border: 'none', borderRadius: '12px', fontWeight: '900' }}>
+                                                <button type="submit" disabled={updateLoading} style={{ gridColumn: '1 / -1', padding: '16px', backgroundColor: '#0ea5e9', color: '#020617', border: 'none', borderRadius: '12px', fontWeight: '900', cursor: 'pointer' }}>
                                                       {updateLoading ? "SYNCING..." : "OVERWRITE_DATA"}
                                                 </button>
                                           </form>
@@ -282,14 +289,13 @@ export default function AdminDashboard() {
       );
 }
 
-// UI COMPONENTS
 function TopStationCard({ title, name, id, color, icon }) {
       return (
             <div style={{ backgroundColor: '#1e293b', padding: '20px', borderRadius: '25px', border: `2px solid ${name ? color : '#334155'}`, display: 'flex', alignItems: 'center', gap: '15px', opacity: name ? 1 : 0.6 }}>
                   <div style={{ backgroundColor: name ? color : '#334155', padding: '12px', borderRadius: '15px', color: "white" }}>{icon}</div>
-                  <div>
+                  <div style={{ overflow: 'hidden' }}>
                         <p style={{ margin: 0, fontSize: '10px', color: '#94a3b8', fontWeight: '900' }}>{title}</p>
-                        <h3 style={{ margin: '2px 0', color: "white", fontWeight: '900', fontSize: '18px' }}>{name || "AWAITING_DATA"}</h3>
+                        <h3 style={{ margin: '2px 0', color: "white", fontWeight: '900', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name || "AWAITING_DATA"}</h3>
                         <p style={{ margin: 0, fontSize: '11px', color: color, fontWeight: '900' }}>{id ? `ID: ${id}` : "SIGNAL_OFF"}</p>
                   </div>
             </div>
@@ -300,12 +306,12 @@ function StatCard({ label, value, icon, trend, color }) {
       return (
             <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '25px', borderRadius: '35px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
                   <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', backgroundColor: color }}></div>
-                  <div>
+                  <div style={{ flex: 1 }}>
                         <p style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', margin: 0, fontWeight: '900' }}>{label}</p>
                         <h4 style={{ fontSize: '32px', fontWeight: '900', margin: '5px 0', color: "white" }}>{value}</h4>
                         <p style={{ fontSize: '10px', color: '#10b981', margin: 0, fontWeight: '900' }}>{trend}</p>
                   </div>
-                  <div style={{ padding: '15px', backgroundColor: '#1e293b', borderRadius: '18px' }}>{icon}</div>
+                  <div style={{ padding: '15px', backgroundColor: '#1e293b', borderRadius: '18px', flexShrink: 0 }}>{icon}</div>
             </div>
       );
 }
@@ -339,7 +345,7 @@ function DataNode({ label, value, color }) {
 
 function EditInput({ label, value, onChange, span = 1 }) {
       return (
-            <div style={{ gridColumn: `span ${span}`, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <div style={{ gridColumn: typeof window !== 'undefined' && window.innerWidth < 600 ? '1 / -1' : `span ${span}`, display: 'flex', flexDirection: 'column', gap: '5px' }}>
                   <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 'bold' }}>{label}</label>
                   <input value={value || ""} onChange={(e) => onChange(e.target.value)} style={{ padding: '12px', backgroundColor: 'rgba(2, 6, 23, 0.5)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', color: "white", outline: 'none' }} />
             </div>
@@ -347,5 +353,5 @@ function EditInput({ label, value, onChange, span = 1 }) {
 }
 
 function DetailRow({ icon, text }) {
-      return <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#cbd5e1', fontSize: '14px', fontWeight: '700' }}>{icon} {text || "NOT_FOUND"}</div>;
+      return <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#cbd5e1', fontSize: '14px', fontWeight: '700' }}>{icon} <span style={{ overflowWrap: 'anywhere' }}>{text || "NOT_FOUND"}</span></div>;
 }

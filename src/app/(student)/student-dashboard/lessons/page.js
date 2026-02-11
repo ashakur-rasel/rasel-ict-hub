@@ -11,13 +11,22 @@ export default function StudyHub() {
       const [completedTopics, setCompletedTopics] = useState([]);
 
       useEffect(() => {
-            // 1. Fetch Lessons
-            fetch('/api/lessons').then(res => res.json()).then(data => {
-                  if (data.success) setChapters(data.lessons || []); //
-                  setLoading(false);
-            });
+            // FIX: Validate identity before fetching
+            const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+            if (!storedUser._id) {
+                  window.location.href = "/login";
+                  return;
+            }
 
-            // 2. Load Completed Status from localStorage
+            // 1. Fetch Lessons
+            fetch('/api/lessons')
+                  .then(res => res.json())
+                  .then(data => {
+                        if (data.success) setChapters(data.lessons || []);
+                        setLoading(false);
+                  });
+
+            // 2. Load Completed Status from localStorage (Specific to the student's progress)
             const completed = JSON.parse(localStorage.getItem("completedTopics") || "[]");
             setCompletedTopics(completed);
       }, []);

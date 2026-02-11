@@ -9,7 +9,7 @@ import Link from "next/link";
 
 export default function SubmissionView({ params }) {
       const { id } = use(params);
-      const [submissions, setSubmissions] = useState([]);
+      const [submissions, setSubmissions] = useState([]); // Fixed: Starts as empty array
       const [assignment, setAssignment] = useState(null);
       const [loading, setLoading] = useState(true);
       const [toast, setToast] = useState(null);
@@ -29,18 +29,30 @@ export default function SubmissionView({ params }) {
                         const dataSub = await resSub.json();
                         const dataAssign = await resAssign.json();
 
-                        if (dataSub.success) setSubmissions(dataSub.submissions);
+                        // FIX: Changed dataSub.submissions to dataSub.data to match your API
+                        if (dataSub.success) {
+                              setSubmissions(dataSub.data || []);
+                        }
+
                         if (dataAssign.success) {
-                              const current = dataAssign.assignments.find(a => a._id === id);
+                              const list = dataAssign.assignments || dataAssign.data || [];
+                              const current = list.find(a => a._id === id);
                               setAssignment(current);
                         }
-                  } catch (e) { console.error("Sync error"); }
-                  finally { setLoading(false); }
+                  } catch (e) {
+                        console.error("Sync error", e);
+                  } finally {
+                        setLoading(false);
+                  }
             };
             fetchData();
       }, [id]);
 
-      const handleGrade = async (subId, marks, feedback) => {
+      const handleGrade = async (subId) => {
+            // FIX: Correctly targeting the unique ID for each student's input box
+            const marks = document.getElementById(`marks-${subId}`).value;
+            const feedback = document.getElementById(`feedback-${subId}`).value;
+
             try {
                   const res = await fetch(`/api/submissions`, {
                         method: 'PATCH',
@@ -50,9 +62,12 @@ export default function SubmissionView({ params }) {
                   const data = await res.json();
                   if (data.success) {
                         showToast("GRADE_RECORDED_SUCCESSFULLY ✅", "success");
+                        // Update local state to show the new marks immediately
                         setSubmissions(submissions.map(s => s._id === subId ? { ...s, marks, feedback, status: 'Marked' } : s));
                   }
-            } catch (e) { showToast("MARKING_FAILED", "error"); }
+            } catch (e) {
+                  showToast("MARKING_FAILED", "error");
+            }
       };
 
       if (loading) return <div style={{ minHeight: '80vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#0ea5e9', fontWeight: '900', letterSpacing: '2px' }}><Loader2 className="animate-spin" size={40} /> SYNCING_SUBMISSION_NODES...</div>;
@@ -78,7 +93,7 @@ export default function SubmissionView({ params }) {
                         <p style={{ margin: 0, fontSize: '11px', fontWeight: '900', color: '#0ea5e9', letterSpacing: '3px' }}>SUBMISSION_TRACKER</p>
                         <h2 style={{ margin: '10px 0', fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: '900', color: '#0f172a' }}>{assignment?.title}</h2>
                         <div style={{ display: 'flex', gap: '25px', marginTop: '15px', flexWrap: 'wrap' }}>
-                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#ef4444', fontWeight: '900' }}><Calendar size={16} /> DUE: {new Date(assignment?.deadline).toLocaleString()}</span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#ef4444', fontWeight: '900' }}><Calendar size={16} /> DUE: {assignment ? new Date(assignment.deadline).toLocaleString() : '...'}</span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#10b981', fontWeight: '900' }}><Hash size={16} /> TOTAL_ENTRIES: {submissions.length}</span>
                         </div>
                   </div>
@@ -91,7 +106,7 @@ export default function SubmissionView({ params }) {
                               </div>
                         ) : (
                               submissions.map((sub, index) => {
-                                    const isLate = new Date(sub.submittedAt) > new Date(assignment?.deadline);
+                                    const isLate = assignment && new Date(sub.submittedAt) > new Date(assignment.deadline);
                                     return (
                                           <div key={sub._id} style={{ backgroundColor: 'white', borderRadius: '35px', border: `1px solid ${isLate ? '#fecaca' : '#e2e8f0'}`, overflow: 'hidden', boxShadow: '0 10px 20px rgba(0,0,0,0.02)' }}>
 
@@ -133,7 +148,7 @@ export default function SubmissionView({ params }) {
                                                                         <textarea placeholder="Type constructive feedback..." defaultValue={sub.feedback} id={`feedback-${sub._id}`}
                                                                               style={{ width: '100%', height: '80px', padding: '15px', backgroundColor: 'white', border: '1px solid #cbd5e1', color: '#1e293b', borderRadius: '12px', outline: 'none', resize: 'none', fontWeight: '600' }} />
                                                                   </div>
-                                                                  <button onClick={() => handleGrade(sub._id, document.getElementById(`marks-${sub._id}`).value, document.getElementById(`feedback-${sub._id}`).value)}
+                                                                  <button onClick={() => handleGrade(sub._id)}
                                                                         style={{ width: '100%', padding: '16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: '900', boxShadow: '0 5px 15px rgba(16, 185, 129, 0.2)' }}>
                                                                         <Save size={18} /> COMMIT_GRADE
                                                                   </button>

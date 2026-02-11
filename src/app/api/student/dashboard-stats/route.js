@@ -16,7 +16,7 @@ export async function GET(req) {
 
             if (!studentId) return NextResponse.json({ success: false, error: "ID Required" }, { status: 400 });
 
-            // 1. Attendance Data
+            // 1. Attendance Data (Calculated for this specific student)
             const allAttendance = await Attendance.find({});
             let presentDays = 0;
             allAttendance.forEach(record => {
@@ -24,31 +24,37 @@ export async function GET(req) {
                   if (entry && entry.status === "Present") presentDays++;
             });
 
-            // 2. Syllabus Stats (LNS)
+            // 2. Syllabus Stats (LNS) - Chapters and Topics
             const allLessons = await Lesson.find({});
             const totalChapters = allLessons.length;
-            const totalSections = allLessons.reduce((acc, curr) => acc + curr.topics.length, 0);
+            const totalSections = allLessons.reduce((acc, curr) => acc + (curr.topics?.length || 0), 0);
 
-            // 3. Task Stats (TSK)
+            // 3. Task Stats (TSK) - Assignments vs Submissions
             const totalAssignments = await Assignment.countDocuments();
-            const mySubmissions = await Submission.countDocuments({ studentId });
+            // Count how many unique assignments this student has actually submitted
+            const mySubmissionsCount = await Submission.countDocuments({ studentId });
 
             // 4. Exam Stats (EXM)
             const totalExamsAvailable = await Exam.countDocuments();
             const myResults = await Result.find({ studentId });
             const examsCompleted = myResults.length;
+
+            // Calculate average score across all exams taken
             const avgScore = examsCompleted > 0
                   ? (myResults.reduce((acc, curr) => acc + curr.score, 0) / examsCompleted).toFixed(1)
                   : 0;
 
-            const config = await GlobalConfig.findOne({}) || { globalNotice: "Welcome!", isLive: false };
+            // 5. Global Config (For Live Alert and Notice Marquee)
+            const config = await GlobalConfig.findOne({}) || { globalNotice: "Welcome to ICT HUB!", isLive: false };
 
             return NextResponse.json({
                   success: true,
                   stats: {
+                        // Attendance Rate (%)
                         attendanceRate: allAttendance.length > 0 ? ((presentDays / allAttendance.length) * 100).toFixed(1) : 0,
                         avgScore,
-                        pendingTasks: totalAssignments - mySubmissions,
+                        // This drives the "Pending" notification badge
+                        pendingTasks: totalAssignments - mySubmissionsCount,
                         totalPresent: presentDays,
                         totalClasses: allAttendance.length,
                         totalChapters,
@@ -56,9 +62,10 @@ export async function GET(req) {
                         totalAssignments,
                         totalExamsAvailable,
                         examsCompleted,
-                        mySubmissions
+                        mySubmissions: mySubmissionsCount
                   },
                   config,
+                  // Data for the Pie Chart in the UI
                   chartData: [
                         { name: 'Present', value: presentDays, fill: '#10b981' },
                         { name: 'Absent', value: allAttendance.length - presentDays, fill: '#ef4444' }
