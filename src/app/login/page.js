@@ -1,6 +1,6 @@
 "use client";
 import { useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation"; // useRouter যুক্ত করা হয়েছে
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Eye, EyeOff, ShieldAlert, Lock, User, Terminal } from "lucide-react";
@@ -8,7 +8,7 @@ import ParticlesBackground from "@/components/ParticlesBackground";
 
 function LoginContent() {
       const searchParams = useSearchParams();
-      const router = useRouter(); // রাউটার ইনিশিয়ালাইজ করা হয়েছে
+      const router = useRouter();
       const role = searchParams.get("role") || "student";
 
       const [identifier, setIdentifier] = useState("");
@@ -32,7 +32,15 @@ function LoginContent() {
                   const data = await res.json();
 
                   if (data.success) {
-                        setMessage({ type: "success", text: `ACCESS GRANTED (${role.toUpperCase()}). DECRYPTING...` });
+                        // ✅ আইডি অবজেক্ট সমস্যা ফিক্স করা (Clean ID for LocalStorage)
+                        const userData = {
+                              ...data.user,
+                              _id: data.user._id?.$oid || data.user._id // সরাসরি স্ট্রিং আইডি রাখা
+                        };
+
+                        localStorage.setItem("user", JSON.stringify(userData));
+
+                        setMessage({ type: "success", text: `ACCESS GRANTED (${role.toUpperCase()}). REDIRECTING...` });
 
                         confetti({
                               particleCount: 150,
@@ -41,13 +49,10 @@ function LoginContent() {
                               colors: ["#00ff00", "#ffffff", "#008000"],
                         });
 
-                        // ২ সেকেন্ড পর রোল অনুযায়ী ড্যাশবোর্ডে পাঠানো
+                        // ২ সেকেন্ড পর হার্ড রিডাইরেক্ট (লুপ ব্রেক করার জন্য window.location ব্যবহার)
                         setTimeout(() => {
-                              if (role === "admin") {
-                                    router.push("/admin-dashboard");
-                              } else {
-                                    router.push("/student-dashboard");
-                              }
+                              const target = role === "admin" ? "/admin-dashboard" : "/student-dashboard";
+                              window.location.href = target;
                         }, 2000);
 
                   } else {
@@ -64,6 +69,7 @@ function LoginContent() {
             <div className="min-h-screen bg-black text-green-500 flex items-center justify-center p-4 font-mono relative overflow-hidden">
                   <ParticlesBackground />
 
+                  {/* Scanning Animation Line */}
                   <motion.div
                         animate={{ y: ["0vh", "100vh"] }}
                         transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -77,7 +83,7 @@ function LoginContent() {
                   >
                         <div className="text-center mb-8">
                               <Terminal className="w-12 h-12 mx-auto mb-2 animate-pulse" />
-                              <h2 className="text-2xl font-bold tracking-widest uppercase italic">
+                              <h2 className="text-2xl font-bold tracking-widest uppercase italic text-green-400">
                                     {role === "admin" ? "Admin Portal" : "Student Portal"}
                               </h2>
                               <p className="text-xs text-green-500/60 mt-1 uppercase">
@@ -91,7 +97,7 @@ function LoginContent() {
                                     <input
                                           type="text"
                                           placeholder="EMAIL OR PHONE"
-                                          className="w-full bg-black/50 border border-green-500/20 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:border-green-500 transition-all text-sm tracking-widest uppercase"
+                                          className="w-full bg-black/50 border border-green-500/20 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:border-green-500 transition-all text-sm tracking-widest uppercase placeholder:text-green-900"
                                           value={identifier}
                                           onChange={(e) => setIdentifier(e.target.value)}
                                           required
@@ -103,7 +109,7 @@ function LoginContent() {
                                     <input
                                           type={showPassword ? "text" : "password"}
                                           placeholder="ACCESS CODE"
-                                          className="w-full bg-black/50 border border-green-500/20 rounded-lg py-3 pl-12 pr-12 focus:outline-none focus:border-green-500 transition-all text-sm tracking-widest"
+                                          className="w-full bg-black/50 border border-green-500/20 rounded-lg py-3 pl-12 pr-12 focus:outline-none focus:border-green-500 transition-all text-sm tracking-widest placeholder:text-green-900"
                                           value={password}
                                           onChange={(e) => setPassword(e.target.value)}
                                           required
@@ -120,7 +126,7 @@ function LoginContent() {
                               <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-green-600 hover:bg-green-500 text-black font-bold py-3 rounded-lg transition-all transform active:scale-95 shadow-[0_0_20px_rgba(34,197,94,0.4)] flex items-center justify-center gap-2 uppercase tracking-tighter"
+                                    className="w-full bg-green-600 hover:bg-green-500 text-black font-bold py-3 rounded-lg transition-all transform active:scale-95 shadow-[0_0_20px_rgba(34,197,94,0.4)] flex items-center justify-center gap-2 uppercase tracking-tighter disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                     {loading ? "Decrypting..." : "Initiate Login"}
                               </button>
@@ -130,7 +136,9 @@ function LoginContent() {
                               <motion.div
                                     initial={{ y: 10, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    className={`mt-6 p-3 rounded border text-center text-xs flex items-center justify-center gap-2 ${message.type === "success" ? "bg-green-500/10 border-green-500" : "bg-red-500/10 border-red-500 text-red-500"
+                                    className={`mt-6 p-3 rounded border text-center text-xs flex items-center justify-center gap-2 ${message.type === "success"
+                                          ? "bg-green-500/10 border-green-500 text-green-400"
+                                          : "bg-red-500/10 border-red-500 text-red-500"
                                           }`}
                               >
                                     {message.type === "error" && <ShieldAlert className="w-4 h-4" />}

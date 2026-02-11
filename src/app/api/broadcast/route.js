@@ -1,26 +1,16 @@
 import dbConnect from "@/lib/dbConnect";
-import mongoose from "mongoose";
+import GlobalConfig from "@/models/GlobalConfig";
 import { NextResponse } from "next/server";
 
-const GlobalConfigSchema = new mongoose.Schema({
-      liveLink: { type: String, default: "" },
-      isLive: { type: Boolean, default: false },
-      globalNotice: { type: String, default: "" },
-      history: [{
-            type: { type: String },
-            content: String,
-            date: { type: Date, default: Date.now }
-      }]
-});
-
-const GlobalConfig = mongoose.models.GlobalConfig || mongoose.model("GlobalConfig", GlobalConfigSchema);
-
-// ১. ডাটা রিড করার জন্য (GET)
+// 1. Fetch current Config & History
 export async function GET() {
       try {
             await dbConnect();
             const config = await GlobalConfig.findOne({});
+
+            // Get the last 15 entries, newest first
             const historyLog = config?.history ? [...config.history].reverse() : [];
+
             return NextResponse.json({
                   success: true,
                   config: config || { liveLink: "", isLive: false, globalNotice: "" },
@@ -31,34 +21,37 @@ export async function GET() {
       }
 }
 
-// ২. ডাটা আপডেট ও হিস্ট্রি পুশ করার জন্য (POST)
+// 2. Update Status & Push to History
 export async function POST(req) {
       try {
             await dbConnect();
             const body = await req.json();
-            const { actionType, liveLink, globalNotice, isLive } = body;
+            const { actionType, liveLink, globalNotice } = body;
 
             let updateData = {};
             let historyContent = "";
 
+            // Logic based on the button clicked in Admin UI
             if (actionType === "live") {
                   updateData = { liveLink: liveLink, isLive: true };
-                  historyContent = `Live Session: ${liveLink}`;
+                  historyContent = `Live Session Started: ${liveLink}`;
             } else if (actionType === "terminate") {
                   updateData = { liveLink: "", isLive: false };
-                  historyContent = "Session Terminated";
+                  historyContent = "Live Session Terminated";
             } else if (actionType === "notice") {
                   updateData = { globalNotice: globalNotice };
-                  historyContent = globalNotice;
+                  historyContent = `Notice Updated: ${globalNotice}`;
             }
 
             const updateQuery = { $set: updateData };
+
+            // Push to history array and keep only the latest 50 entries
             if (historyContent) {
                   updateQuery.$push = {
                         history: {
                               $each: [{ type: actionType, content: historyContent, date: new Date() }],
-                              $position: 0,
-                              $slice: 50
+                              $position: 0, // Insert at the beginning of the array
+                              $slice: 50    // Keep the array size at 50
                         }
                   };
             }
@@ -70,16 +63,14 @@ export async function POST(req) {
       }
 }
 
-// ৩. নির্দিষ্ট হিস্ট্রি ডিলিট করার জন্য (DELETE)
+// 3. Delete a specific history log item
 export async function DELETE(req) {
       try {
             await dbConnect();
             const { searchParams } = new URL(req.url);
             const historyId = searchParams.get('id');
 
-            if (!historyId) {
-                  return NextResponse.json({ success: false, error: "ID required" });
-            }
+            if (!historyId) return NextResponse.json({ success: false, error: "ID required" });
 
             await GlobalConfig.updateOne(
                   {},

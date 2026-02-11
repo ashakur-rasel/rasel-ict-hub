@@ -167,7 +167,7 @@ export default function Home() {
                   className="absolute right-0 mt-3 w-48 bg-slate-800 border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
                 >
                   {/* Student Login Link */}
-                  <Link href="/login" className="w-full flex items-center gap-3 px-4 py-4 hover:bg-blue-600 transition text-left border-b border-white/5">
+                  <Link href="/login?role=student" className="w-full flex items-center gap-3 px-4 py-4 hover:bg-blue-600 transition text-left border-b border-white/5">
                     <GraduationCap size={18} /> Student Login
                   </Link>
 
@@ -199,7 +199,7 @@ export default function Home() {
           </AnimatePresence>
         </div>
         <div className="flex flex-col sm:flex-row justify-center gap-4 w-full sm:w-auto px-4">
-          <Link href="/login" className="bg-white text-black px-8 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:scale-105 transition w-full sm:w-auto">
+          <Link href="/login?role=student" className="bg-white text-black px-8 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:scale-105 transition w-full sm:w-auto">
             <GraduationCap /> Student Portal
           </Link>
           <Link href="/login?role=admin" className="border-2 border-blue-500 text-blue-500 px-8 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-blue-500 hover:text-white transition w-full sm:w-auto">

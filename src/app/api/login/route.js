@@ -1,15 +1,13 @@
 import dbConnect from "@/lib/dbConnect";
 import Student from "@/models/Student";
-import Teacher from "@/models/Teacher"; // নতুন মডেলটি ইমপোর্ট করলাম
+import Teacher from "@/models/Teacher";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
       try {
             await dbConnect();
-            // identifier ছাড়াও এখন 'role' ডাটাটি ফ্রন্টএন্ড থেকে আসবে
             const { identifier, password, role } = await req.json();
 
-            // লজিক: যদি role 'admin' হয় তবে Teacher মডেলে খোঁজো, নাহলে Student মডেলে
             const Model = role === "admin" ? Teacher : Student;
 
             const user = await Model.findOne({
@@ -26,19 +24,26 @@ export async function POST(req) {
                   }, { status: 404 });
             }
 
-            // পাসওয়ার্ড চেক
             if (user.password !== password) {
                   return NextResponse.json({ success: false, message: "Invalid password!" }, { status: 401 });
             }
 
+            // ✅ ফিক্স: পুরো ইউজার অবজেক্টটি পাঠানো হচ্ছে
+            // পাসওয়ার্ডটি সিকিউরিটির জন্য বাদ দিয়ে পাঠানো ভালো
+            const { password: _, ...userWithoutPassword } = user.toObject ? user.toObject() : user;
+
             return NextResponse.json({
                   success: true,
                   message: `Welcome back, ${user.name}! 🚀`,
-                  role: role,
-                  userId: user.studentId || user.email // টিচারদের জন্য আইডি না থাকলে ইমেইল যাবে
+                  user: {
+                        ...userWithoutPassword,
+                        role: role, // ফ্রন্টএন্ডের সুবিধার জন্য রোলটি ভেতরে ঢুকিয়ে দিলাম
+                        studentId: user.studentId || user.email
+                  }
             });
 
       } catch (error) {
-            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+            console.error("Login API Error:", error);
+            return NextResponse.json({ success: false, message: error.message }, { status: 500 });
       }
 }

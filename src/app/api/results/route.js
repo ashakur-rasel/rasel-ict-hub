@@ -7,20 +7,53 @@ export async function GET(req) {
       await dbConnect();
       try {
             const { searchParams } = new URL(req.url);
-            const examId = searchParams.get("examId");
+            const examId = searchParams.get("examId"); // For Leaderboard
+            const id = searchParams.get("id");         // For Specific Result
+            const studentId = searchParams.get("studentId"); // For Security Check
 
-            if (!examId) {
-                  return NextResponse.json({ success: false, error: "Exam ID is required" }, { status: 400 });
+            // CASE 1: Security Check (Check if student already attempted)
+            if (studentId && examId && !id) {
+                  const existing = await Result.findOne({ studentId, examId });
+                  return NextResponse.json({
+                        success: true,
+                        alreadySubmitted: !!existing,
+                        resultId: existing?._id || null
+                  });
             }
 
-            // ওই পরীক্ষার সব স্টুডেন্টের রেজাল্ট খুঁজে বের করা
-            const scoreboard = await Result.find({ examId }).sort({ score: -1 });
+            // CASE 2: Single Result View (Student Scorecard)
+            if (id) {
+                  const result = await Result.findById(id).populate("examId");
+                  if (!result) return NextResponse.json({ success: false, error: "Result not found" }, { status: 404 });
 
-            return NextResponse.json({ success: true, results: scoreboard });
+                  const detailedAnswers = result.answers.map(ans => {
+                        const originalQue = result.examId.questions.id(ans.questionId);
+                        return {
+                              ...ans.toObject(),
+                              questionText: originalQue?.questionText || "Question text missing",
+                              correctAnswer: originalQue?.correctAnswer || "N/A"
+                        };
+                  });
+
+                  return NextResponse.json({
+                        success: true,
+                        data: { ...result.toObject(), answers: detailedAnswers }
+                  });
+            }
+
+            // CASE 3: Leaderboard (All results for one exam)
+            if (examId) {
+                  const scoreboard = await Result.find({ examId }).sort({ score: -1, createdAt: 1 });
+                  return NextResponse.json({ success: true, results: scoreboard });
+            }
+
+            return NextResponse.json({ success: false, error: "Parameters missing" }, { status: 400 });
       } catch (error) {
             return NextResponse.json({ success: false, error: error.message }, { status: 500 });
       }
 }
+
+// POST remains the same as your previous logic...
 
 export async function POST(req) {
       await dbConnect();
@@ -28,14 +61,11 @@ export async function POST(req) {
             const body = await req.json();
             const { examId, answers, studentId, studentName } = body;
 
-            // ১. ওই পরীক্ষার অরিজিনাল কোশ্চেনগুলো ডাটাবেস থেকে নিয়ে আসা
             const exam = await Exam.findById(examId);
             if (!exam) return NextResponse.json({ success: false, error: "Exam not found" }, { status: 404 });
 
-            // ২. অটোমেটিক স্কোর ক্যালকুলেশন লজিক
             let autoScore = 0;
             const verifiedAnswers = answers.map((studentAns) => {
-                  // ডাটাবেসের কোশ্চেন লিস্ট থেকে এই কোশ্চেনটা খুঁজে বের করা
                   const originalQue = exam.questions.id(studentAns.questionId);
                   const isCorrect = originalQue && originalQue.correctAnswer === studentAns.selectedOption;
 
@@ -47,7 +77,6 @@ export async function POST(req) {
                   };
             });
 
-            // ৩. রেজাল্ট সেভ করা
             const finalResult = await Result.create({
                   examId,
                   studentId,

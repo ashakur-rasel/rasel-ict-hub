@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import Exam from "@/models/Result";
+import Exam from "@/models/Exam";
 
-// ১. সব এক্সাম এবং সিঙ্গেল এক্সাম দেখা
+// 1. সব এক্সাম এবং সিঙ্গেল এক্সাম দেখা
 export async function GET(req) {
       await dbConnect();
       try {
@@ -11,6 +11,25 @@ export async function GET(req) {
 
             if (id) {
                   const exam = await Exam.findById(id);
+                  if (!exam) return NextResponse.json({ success: false, error: "Exam not found" }, { status: 404 });
+
+                  // --- SECURITY LOCK LOGIC ---
+                  const now = new Date();
+                  const examDate = new Date(exam.date);
+                  const [hours, minutes] = exam.startTime.split(':');
+                  examDate.setHours(parseInt(hours), parseInt(minutes), 0);
+
+                  // If current time is before the exam start time, lock the questions
+                  if (now < examDate) {
+                        return NextResponse.json({
+                              success: false,
+                              isLocked: true,
+                              startTime: exam.startTime,
+                              error: "Exam has not started yet. Access denied."
+                        }, { status: 403 });
+                  }
+                  // ----------------------------
+
                   return NextResponse.json({ success: true, exam });
             }
 
@@ -21,7 +40,7 @@ export async function GET(req) {
       }
 }
 
-// ২. নতুন এক্সাম তৈরি
+// 2. নতুন এক্সাম তৈরি
 export async function POST(req) {
       await dbConnect();
       try {
@@ -33,7 +52,7 @@ export async function POST(req) {
       }
 }
 
-// ৩. এক্সাম এডিট বা মডিফাই করা
+// 3. এক্সাম এডিট বা মডিফাই করা
 export async function PATCH(req) {
       await dbConnect();
       try {
@@ -46,7 +65,7 @@ export async function PATCH(req) {
       }
 }
 
-// ৪. এক্সাম ডিলিট করা
+// 4. এক্সাম ডিলিট করা
 export async function DELETE(req) {
       await dbConnect();
       try {

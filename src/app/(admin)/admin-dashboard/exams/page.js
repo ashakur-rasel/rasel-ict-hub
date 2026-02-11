@@ -9,7 +9,7 @@ import {
 export default function ExamCreator() {
       const router = useRouter();
       const [examData, setExamData] = useState({
-            title: "", date: "", startTime: "", duration: "", totalMarks: 0,
+            title: "", date: "", startTime: "", duration: "60", totalMarks: 0,
             questions: [{ questionText: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "a" }]
       });
       const [loading, setLoading] = useState(false);
@@ -45,7 +45,7 @@ export default function ExamCreator() {
       };
 
       const submitExam = async () => {
-            if (!examData.title || !examData.date || !examData.startTime) {
+            if (!examData.title || !examData.date || !examData.startTime || !examData.duration) {
                   return showNotification("FILL_ALL_REQUIRED_PROTOCOL_FIELDS", "error");
             }
             setLoading(true);
@@ -59,6 +59,8 @@ export default function ExamCreator() {
                   if (data.success) {
                         showNotification("EXAM_STATION_LIVE_AND_SYNCED", "success");
                         router.push('/admin-dashboard/exams/history');
+                  } else {
+                        showNotification(data.error || "FAILED_TO_PUBLISH", "error");
                   }
             } catch (err) { showNotification("SERVER_LINK_ERROR", "error"); }
             finally { setLoading(false); }
@@ -83,18 +85,22 @@ export default function ExamCreator() {
                         </button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))', gap: '20px', marginBottom: '30px', backgroundColor: '#0f172a', padding: '30px', borderRadius: '35px', border: '1px solid #1e293b' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: '20px', marginBottom: '30px', backgroundColor: '#0f172a', padding: '30px', borderRadius: '35px', border: '1px solid #1e293b' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: '900' }}>EXAM_TITLE</label>
-                              <input type="text" placeholder="e.g. MCQ Final" onChange={(e) => setExamData({ ...examData, title: e.target.value })} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #1e293b', backgroundColor: '#020617', color: 'white', fontWeight: '700', outline: 'none' }} />
+                              <input type="text" placeholder="e.g. MCQ Final" value={examData.title} onChange={(e) => setExamData({ ...examData, title: e.target.value })} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #1e293b', backgroundColor: '#020617', color: 'white', fontWeight: '700', outline: 'none' }} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: '900' }}>DATE_NODE</label>
-                              <input type="date" onChange={(e) => setExamData({ ...examData, date: e.target.value })} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #1e293b', backgroundColor: '#020617', color: 'white', fontWeight: '700', outline: 'none' }} />
+                              <input type="date" value={examData.date} onChange={(e) => setExamData({ ...examData, date: e.target.value })} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #1e293b', backgroundColor: '#020617', color: 'white', fontWeight: '700', outline: 'none' }} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: '900' }}>START_PROTOCOL</label>
-                              <input type="time" onChange={(e) => setExamData({ ...examData, startTime: e.target.value })} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #1e293b', backgroundColor: '#020617', color: 'white', fontWeight: '700', outline: 'none' }} />
+                              <input type="time" value={examData.startTime} onChange={(e) => setExamData({ ...examData, startTime: e.target.value })} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #1e293b', backgroundColor: '#020617', color: 'white', fontWeight: '700', outline: 'none' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: '900' }}>DURATION (MIN)</label>
+                              <input type="number" placeholder="Minutes" value={examData.duration} onChange={(e) => setExamData({ ...examData, duration: e.target.value })} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #1e293b', backgroundColor: '#020617', color: 'white', fontWeight: '700', outline: 'none' }} />
                         </div>
                         <div style={{ backgroundColor: '#1e293b', borderRadius: '15px', padding: '15px', textAlign: 'center', border: '1px solid #334155' }}>
                               <p style={{ margin: 0, fontSize: '10px', color: '#94a3b8', fontWeight: '900' }}>TOTAL_SCORE</p>
@@ -141,6 +147,11 @@ export default function ExamCreator() {
                               {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />} PUBLISH_TO_NETWORK
                         </button>
                   </div>
+
+                  <style jsx global>{`
+                        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+                        ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+                  `}</style>
             </div>
       );
 }
