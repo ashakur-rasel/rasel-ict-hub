@@ -34,3 +34,11 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+export const metadata = {
+  title: "Rasel ICT Hub",
+  description: "Advanced Learning Management System",
+  manifest: "/manifest.json", // This is the key line
+  themeColor: "#0ea5e9",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+};
