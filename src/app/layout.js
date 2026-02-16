@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Rajdhani } from "next/font/google"; // Rajdhani যোগ করা হয়েছে
+import { Geist, Geist_Mono, Rajdhani } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,16 +11,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// তোমার ড্যাশবোর্ডের জন্য স্পেশাল সাইবার ফন্ট
+// Your special cyber font for the dashboard
 const rajdhani = Rajdhani({
   weight: ["400", "500", "700"],
   subsets: ["latin"],
   variable: "--font-rajdhani",
 });
 
+// Combined Metadata - Only one export allowed
 export const metadata = {
-  title: "Rasel's ICT Hub | Teacher Portal",
+  title: "Rasel's ICT Hub",
   description: "Next-Generation Learning Management System",
+  manifest: "/manifest.json",
+  themeColor: "#0ea5e9",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({ children }) {
@@ -34,11 +38,3 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-
-export const metadata = {
-  title: "Rasel ICT Hub",
-  description: "Advanced Learning Management System",
-  manifest: "/manifest.json", // This is the key line
-  themeColor: "#0ea5e9",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
-};
