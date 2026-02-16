@@ -3,13 +3,18 @@ import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Eye, EyeOff, ShieldAlert, Lock, User, Terminal } from "lucide-react";
+import { Eye, EyeOff, ShieldAlert, Lock, User, Terminal, X } from "lucide-react";
 import ParticlesBackground from "@/components/ParticlesBackground";
 
 function LoginContent() {
       const searchParams = useSearchParams();
       const router = useRouter();
       const role = searchParams.get("role") || "student";
+      
+      //added close button to return home page
+      const handleClose = () => {
+            router.push("/");
+      }
 
       const [identifier, setIdentifier] = useState("");
       const [password, setPassword] = useState("");
@@ -81,6 +86,16 @@ function LoginContent() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="w-full max-w-md bg-gray-900/40 backdrop-blur-xl border border-green-500/30 p-8 rounded-2xl shadow-[0_0_50px_rgba(0,255,0,0.1)] relative z-20"
                   >
+                        {/* --- CLOSE BUTTON START --- */}
+                        <button 
+                              onClick={handleClose}
+                              className="absolute top-4 right-4 text-green-500/50 hover:text-green-400 hover:bg-green-500/10 p-1 rounded-full transition-all group"
+                              title="Close Portal"
+                        >
+                              <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+                        </button>
+                        {/* --- CLOSE BUTTON END --- */}
+
                         <div className="text-center mb-8">
                               <Terminal className="w-12 h-12 mx-auto mb-2 animate-pulse" />
                               <h2 className="text-2xl font-bold tracking-widest uppercase italic text-green-400">
