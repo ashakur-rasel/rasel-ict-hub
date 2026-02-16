@@ -6,19 +6,21 @@ import ParticlesBackground from "@/components/ParticlesBackground";
 import { Laptop, GraduationCap, Phone, Mail, Cpu, Gamepad2, Newspaper, ChevronDown, X, Circle, Terminal, RefreshCw, Lightbulb, Download } from "lucide-react";
 
 export default function Home() {
-  const [showSplash, setShowSplash] = useState(true);
   const [currentSpeech, setCurrentSpeech] = useState(0);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
+  // --- PWA Install States ---
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstallable, setIsInstallable] = useState(false);
 
+  // --- Game 1: Cross-Zero States ---
   const [board, setBoard] = useState(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState(true);
   const [difficulty, setDifficulty] = useState("Impossible");
   const [gameMessage, setGameMessage] = useState("System Ready: Input Data... 🖥️");
 
+  // --- Game 2: Word Shuffle States ---
   const techData = [
     { word: "DATABASE", hint: "A structured set of data held in a computer." },
     { word: "NETWORK", hint: "A group of interconnected computers." },
@@ -32,6 +34,7 @@ export default function Home() {
   const [showHint, setShowHint] = useState(false);
   const [shuffleStatus, setShuffleStatus] = useState("Decode the hash below... 🔑");
 
+  // --- Game 3: Word Match States ---
   const pairs = { "IP": "Address", "HTML": "Markup", "USB": "Storage", "CPU": "Processor" };
   const [selectedKey, setSelectedKey] = useState(null);
   const [matchScore, setMatchScore] = useState(0);
@@ -46,22 +49,19 @@ export default function Home() {
 
   useEffect(() => {
     setIsMounted(true);
-    const splashTimer = setTimeout(() => setShowSplash(false), 2500);
     const timer = setInterval(() => {
       setCurrentSpeech((prev) => (prev + 1) % speeches.length);
     }, 4000);
     initShuffle();
 
+    // --- PWA Listener ---
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallable(true);
     });
 
-    return () => {
-      clearTimeout(splashTimer);
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
   }, []);
 
   const handleInstallClick = async () => {
@@ -74,6 +74,7 @@ export default function Home() {
     setDeferredPrompt(null);
   };
 
+  // --- Game 1 Logic (Cross-Zero) ---
   const winner = calculateWinner(board);
   useEffect(() => {
     if (winner) {
@@ -109,6 +110,7 @@ export default function Home() {
     setIsXNext(!isXNext);
   };
 
+  // --- Game 2 Logic (Word Shuffle) ---
   const initShuffle = () => {
     const item = techData[Math.floor(Math.random() * techData.length)];
     setCurrentTech(item);
@@ -127,6 +129,7 @@ export default function Home() {
     }
   };
 
+  // --- Game 3 Logic (Word Match) ---
   const handleMatch = (val, type) => {
     if (type === 'key') {
       setSelectedKey(val);
@@ -147,47 +150,9 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen w-full bg-[#0f172a] overflow-x-hidden text-white">
-      <AnimatePresence>
-        {showSplash && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-[#0f172a]"
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1, ease: "backOut" }}
-              className="relative w-48 h-48 md:w-64 md:h-64"
-            >
-              <img
-                src="/icon-512x512.png"
-                alt="Logo"
-                className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(14,165,233,0.5)]"
-              />
-            </motion.div>
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-8 text-center"
-            >
-              <h1 className="text-3xl font-black tracking-tighter uppercase italic">
-                RASEL <span className="text-blue-500">ICT HUB</span>
-              </h1>
-              <div className="mt-4 flex gap-1 justify-center">
-                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
-                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <ParticlesBackground />
 
+      {/* Floating Animated Icons */}
       <div className="fixed inset-0 pointer-events-none z-10 overflow-hidden">
         {[...Array(5)].map((_, i) => (
           <motion.div key={i} initial={{ x: -100, y: (i + 1) * 100 }}
@@ -200,6 +165,7 @@ export default function Home() {
         ))}
       </div>
 
+      {/* Header */}
       <header className="fixed top-0 w-full z-[100] bg-slate-900/80 backdrop-blur-lg border-b border-white/10 px-4 md:px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-xl md:text-2xl font-black tracking-tighter">
@@ -245,6 +211,7 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Hero Section */}
       <section className="relative pt-40 pb-20 px-6 flex flex-col items-center justify-center min-h-screen text-center z-20">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-blue-500/10 border border-blue-500/20 px-4 py-1 rounded-full text-blue-400 text-xs md:text-sm font-bold mb-6">
           Welcome to the Future of Learning 🌐
@@ -275,6 +242,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Games Section */}
       <section id="games" className="py-24 bg-slate-900/50 relative z-20 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4 mb-12">
@@ -283,6 +251,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            {/* Cross-Zero Game */}
             <div className="bg-slate-800/50 p-6 md:p-8 rounded-[2rem] border border-white/10 flex flex-col items-center">
               <div className="flex gap-2 mb-6 bg-slate-900/80 p-1.5 rounded-xl border border-white/5 w-full max-w-xs justify-between">
                 {["Easy", "Medium", "Impossible"].map(lvl => (
@@ -301,7 +270,9 @@ export default function Home() {
               <p className="mt-6 text-blue-400 font-mono animate-pulse uppercase tracking-tighter h-6 text-center text-sm">{gameMessage}</p>
             </div>
 
+            {/* Side Games */}
             <div className="space-y-6 w-full">
+              {/* Word Shuffle */}
               <div className="bg-slate-800/30 p-6 rounded-2xl border border-white/5">
                 <div className="flex justify-between items-center mb-4">
                   <h5 className="text-xl font-bold flex items-center gap-2 font-black italic"><RefreshCw size={18} className="text-purple-500" /> Word Shuffle</h5>
@@ -322,6 +293,7 @@ export default function Home() {
                 <p className={`text-center text-xs font-mono uppercase tracking-widest font-bold ${shuffleStatus.includes('Granted') ? 'text-green-400' : 'text-purple-400'}`}>{shuffleStatus}</p>
               </div>
 
+              {/* Word Match */}
               <div className="bg-slate-800/30 p-6 rounded-2xl border border-white/5">
                 <h5 className="text-xl font-bold mb-4 flex items-center gap-2 font-black italic">🔗 Handshake Match</h5>
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
@@ -346,6 +318,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Tech Blog */}
       <section id="blog" className="py-24 px-4 md:px-6 relative z-20">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4 mb-12">
@@ -371,6 +344,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Footer */}
       <footer id="contact" className="bg-slate-950 pt-20 pb-10 px-6 relative z-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
           <div>
@@ -396,6 +370,7 @@ export default function Home() {
   );
 }
 
+// --- Minimax Logic ---
 function getBestMove(board) {
   let bestScore = -Infinity;
   let move = -1;
