@@ -25,9 +25,6 @@ export const metadata = {
   manifest: "/manifest.json",
   themeColor: "#0ea5e9",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1",
-  icons: {
-    apple: "/icon-192.png", // For iPhones
-  }
 };
 
 export default function RootLayout({ children }) {
