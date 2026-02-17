@@ -22,6 +22,7 @@ import {
   Github,
   UserRoundCheck,
   Download,
+  Star,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -334,7 +335,7 @@ export default function Home() {
               <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-slate-900 shadow-2xl">
                 <Image src="/instructor.png" alt="Ashakur Rahaman Rasel" width={400} height={400} priority className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-blue-600 px-4 py-2 rounded-xl font-black text-xs shadow-lg rotate-12">10+ YRS EXP</div>
+              <div className="absolute -bottom-2 -right-2 bg-blue-600 px-4 py-2 rounded-xl font-black text-xs shadow-lg rotate-12">8+ YRS EXP</div>
             </div>
 
             <div className="flex-1 text-center md:text-left">
@@ -349,9 +350,9 @@ export default function Home() {
               </div>
 
               <div className="flex justify-center md:justify-start gap-6">
-                <motion.a href="https://facebook.com/your-profile" target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2, y: -5 }} className="text-gray-400 hover:text-blue-500 transition-colors"><Facebook size={28} /></motion.a>
-                <motion.a href="https://linkedin.com/in/your-profile" target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2, y: -5 }} className="text-gray-400 hover:text-blue-600 transition-colors"><Linkedin size={28} /></motion.a>
-                <motion.a href="https://github.com/your-profile" target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2, y: -5 }} className="text-gray-400 hover:text-white transition-colors"><Github size={28} /></motion.a>
+                <motion.a href="https://facebook.com/raselvaiaa" target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2, y: -5 }} className="text-gray-400 hover:text-blue-500 transition-colors"><Facebook size={28} /></motion.a>
+                <motion.a href="https://bd.linkedin.com/in/ashakurrahmanrasel" target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2, y: -5 }} className="text-gray-400 hover:text-blue-600 transition-colors"><Linkedin size={28} /></motion.a>
+                <motion.a href="https://github.com/ashakur-rasel" target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.2, y: -5 }} className="text-gray-400 hover:text-white transition-colors"><Github size={28} /></motion.a>
               </div>
             </div>
           </motion.div>
@@ -434,12 +435,16 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { name: "Samiul Islam", role: "HSC Student", text: "ICT Hub এর ভিডিও লেসন আর কুইজগুলো আমার রেজাল্ট বদলে দিয়েছে!", color: "blue" },
+              { name: "Samiul Islam", role: "HSC 2022", text: "ICT Hub এর ভিডিও লেসন আর কুইজগুলো আমার রেজাল্ট বদলে দিয়েছে!", color: "blue" },
               { name: "Adnan Sami", role: "Web Dev Learner", text: "Interactive গেমগুলো খেলতে খেলতে আইসিটি শেখা যায়, এটা ভাবিনি কখনো।", color: "purple" },
-              { name: "Farhana Akter", role: "HSC 2026", text: "রাসেল স্যারের গাইডলাইন আমাকে প্রোগ্রামিংয়ে অনেক আত্মবিশ্বাস দিয়েছে।", color: "pink" },
+              { name: "Farhana Akter", role: "HSC 2023", text: "রাসেল স্যারের গাইডলাইন আমাকে প্রোগ্রামিংয়ে অনেক আত্মবিশ্বাস দিয়েছে।", color: "pink" },
             ].map((review, i) => (
               <motion.div key={i} whileHover={{ y: -10 }} className="bg-slate-800/50 border border-white/5 p-8 rounded-[2rem] relative overflow-hidden text-left">
-                <div className="flex gap-1 mb-4 text-yellow-500">{[...Array(5)].map((_, i) => (<Circle key={i} size={10} fill="currentColor" />))}</div>
+                <div className="flex gap-1 mb-4 text-yellow-500">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={14} fill="currentColor" className="text-yellow-400" />
+                  ))}
+                </div>
                 <p className="text-gray-300 italic mb-6 relative z-10 leading-relaxed">"{review.text}"</p>
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-full bg-${review.color}-500/20 flex items-center justify-center font-black text-xl text-${review.color}-400 border border-${review.color}-500/30`}>{review.name[0]}</div>
