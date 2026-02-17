@@ -24,10 +24,17 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
+import { Laptop, GraduationCap, Phone, Mail, Cpu, Gamepad2, Newspaper, ChevronDown, X, Circle, Terminal, RefreshCw, Lightbulb, Download } from "lucide-react";
+
+
 export default function Home() {
   const [currentSpeech, setCurrentSpeech] = useState(0);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+
+  // --- PWA Install States ---
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
 
   // --- Game 1: Cross-Zero States ---
   const [board, setBoard] = useState(Array(9).fill(null));
@@ -82,8 +89,26 @@ export default function Home() {
       setCurrentSpeech((prev) => (prev + 1) % speeches.length);
     }, 4000);
     initShuffle();
+
+    // --- PWA Listener ---
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    });
+
     return () => clearInterval(timer);
   }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setIsInstallable(false);
+    }
+    setDeferredPrompt(null);
+  };
 
   // --- Game 1 Logic (Cross-Zero) ---
   const winner = calculateWinner(board);
@@ -229,6 +254,7 @@ export default function Home() {
             </a>
           </nav>
 
+
           {/* Action Buttons */}
           <div className="flex items-center gap-2 md:gap-4 relative">
             {/* Enroll Now Button  */}
@@ -258,12 +284,28 @@ export default function Home() {
                 />
               </button>
 
+
+          <div className="flex items-center gap-2 md:gap-4">
+            {isInstallable && (
+              <button
+                onClick={handleInstallClick}
+                className="hidden md:flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full font-bold hover:bg-white/20 transition text-sm"
+              >
+                <Download size={16} /> Install
+              </button>
+            )}
+            <div className="relative">
+              <button onClick={() => setIsLoginOpen(!isLoginOpen)} className="bg-blue-600 px-5 py-2 rounded-full font-bold flex items-center gap-2 hover:bg-blue-700 transition text-sm md:text-base">
+                Login <ChevronDown size={16} className={isLoginOpen ? "rotate-180 transition" : "transition"} />
+              </button>
+
               <AnimatePresence>
                 {isLoginOpen && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
+
                     className="absolute right-0 mt-3 w-40 md:w-48 bg-slate-800 border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-[110]"
                   >
                     <Link
@@ -277,16 +319,28 @@ export default function Home() {
                       className="w-full flex items-center gap-3 px-4 py-3 md:py-4 hover:bg-blue-600 transition text-left text-xs md:text-sm"
                     >
                       <Laptop size={16} /> Teacher Login
+
+                    className="absolute right-0 mt-3 w-48 bg-slate-800 border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+                  >
+                    <Link href="/login?role=student" className="w-full flex items-center gap-3 px-4 py-4 hover:bg-blue-600 transition text-left border-b border-white/5">
+                      <GraduationCap size={18} /> Student Login
+                    </Link>
+                    <Link href="/login?role=admin" className="w-full flex items-center gap-3 px-4 py-4 hover:bg-blue-600 transition text-left">
+                      <Laptop size={18} /> Teacher Login
+
                     </Link>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
+
             {/* Mobile Menu Button */}
             {/* <button className="lg:hidden p-2 text-gray-400 hover:text-white transition">
               <Terminal size={24} />
             </button> */}
+
+
           </div>
         </div>
       </header>
@@ -332,6 +386,11 @@ export default function Home() {
           >
             <Laptop /> Teacher Portal
           </Link>
+          {isInstallable && (
+            <button onClick={handleInstallClick} className="md:hidden bg-blue-500/20 text-blue-400 border border-blue-500/30 px-8 py-4 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-blue-500 hover:text-white transition w-full sm:w-auto">
+              <Download /> Install App
+            </button>
+          )}
         </div>
       </section>
 
