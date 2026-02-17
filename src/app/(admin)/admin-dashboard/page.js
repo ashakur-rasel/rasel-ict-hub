@@ -25,6 +25,7 @@ export default function AdminDashboard() {
 
       const [totalExams, setTotalExams] = useState(0);
       const [totalAssignments, setTotalAssignments] = useState(0);
+      const [totalBlogs, setTotalBlogs] = useState(0); // নতুন স্টেট যোগ করা হয়েছে
 
       const [topAttendance, setTopAttendance] = useState(null);
       const [topExam, setTopExam] = useState(null);
@@ -38,6 +39,11 @@ export default function AdminDashboard() {
                   const data = await res.json();
                   const studentList = data.success ? data.students : [];
                   setStudents(studentList);
+
+                  // ব্লগ ডাটা ফেচ করার অংশ
+                  const blogsRes = await fetch('/api/blogs?admin=true');
+                  const blogsData = await blogsRes.json();
+                  if (blogsData.blogs) setTotalBlogs(blogsData.total || 0);
 
                   const historyRes = await fetch('/api/attendance/history', { cache: 'no-store' });
                   const historyData = await historyRes.json();
@@ -163,11 +169,12 @@ export default function AdminDashboard() {
                                           <StatCard label="Total Nodes" value={loading ? "..." : students.length} icon={<Users size={30} color="#0ea5e9" />} trend="Network_Active" color="#0ea5e9" />
                                           <StatCard label="Total Sessions" value={loading ? "..." : activeChapters} icon={<Zap size={30} color="#f59e0b" />} trend="Live_Archive" color="#f59e0b" />
                                           <StatCard label="Avg. Attendance" value={`${overallRate}%`} icon={<Activity size={30} color="#10b981" />} trend="Sync_Stable" color="#10b981" />
+                                          <StatCard label="Pulse Posts" value={loading ? "..." : totalBlogs} icon={<Activity size={30} color="#38bdf8" />} trend="Live_Pulse" color="#38bdf8" />
                                           <StatCard label="Exam Records" value={loading ? "..." : totalExams} icon={<ClipboardList size={30} color="#8b5cf6" />} trend="Arena_Active" color="#8b5cf6" />
                                           <StatCard label="Assignment Sets" value={loading ? "..." : totalAssignments} icon={<FileText size={30} color="#ec4899" />} trend="Mission_Archive" color="#ec4899" />
-                                          <StatCard label="Integrity" value="100%" icon={<Target size={30} color="#ef4444" />} trend="Secure_Protocol" color="#ef4444" />
                                     </div>
 
+                                    {/* বাকি কোড একই থাকবে... */}
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '20px' }}>
                                           <TopStationCard title="ATTENDANCE_KING" name={topAttendance?.name} id={topAttendance?.studentId} color="#10b981" icon={<Trophy size={24} />} />
                                           <TopStationCard title="EXAM_TOPPER" name={topExam?.name} id={topExam?.studentId} color="#3b82f6" icon={<Star size={24} />} />
@@ -289,6 +296,7 @@ export default function AdminDashboard() {
       );
 }
 
+// Sub-components remains same
 function TopStationCard({ title, name, id, color, icon }) {
       return (
             <div style={{ backgroundColor: '#1e293b', padding: '20px', borderRadius: '25px', border: `2px solid ${name ? color : '#334155'}`, display: 'flex', alignItems: 'center', gap: '15px', opacity: name ? 1 : 0.6 }}>

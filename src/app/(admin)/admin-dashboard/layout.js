@@ -25,7 +25,8 @@ export default function AdminLayout({ children }) {
             const handleResize = () => {
                   const mobile = window.innerWidth < 1024;
                   setIsMobile(mobile);
-                  setIsOpen(!mobile);
+                  if (mobile) setIsOpen(false); // মোবাইলে ডিফল্টভাবে মেনু বন্ধ থাকবে
+                  else setIsOpen(true);
             };
             handleResize();
             window.addEventListener("resize", handleResize);
@@ -45,9 +46,11 @@ export default function AdminLayout({ children }) {
             finally { setSyncing(false); }
       };
 
+      // মেনু আইটেমগুলো এখানে গুছিয়ে রাখা হয়েছে
       const menu = [
             { name: "Terminal", icon: <LayoutDashboard size={20} />, href: "/admin-dashboard" },
             { name: "Enrollment", icon: <Users size={20} />, href: "/admin-dashboard/users" },
+            { name: "Pulse Hub", icon: <Activity size={20} />, href: "/admin-dashboard/blogs" }, // ব্লগ সেকশন
             { name: "Study Lessons", icon: <BookOpen size={20} />, href: "/admin-dashboard/lessons" },
             { name: "Resources", icon: <FolderTree size={20} />, href: "/admin-dashboard/resources" },
             { name: "Broadcast", icon: <Video size={20} />, href: "/admin-dashboard/broadcast" },
@@ -60,8 +63,16 @@ export default function AdminLayout({ children }) {
       return (
             <div style={{ backgroundColor: '#020617', color: '#f8fafc', height: '100vh', display: 'flex', overflow: 'hidden', fontFamily: 'var(--font-rajdhani), sans-serif' }}>
 
+                  {/* Sidebar Overlay for Mobile */}
+                  {isMobile && isOpen && (
+                        <div
+                              onClick={() => setIsOpen(false)}
+                              style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 999, backdropFilter: 'blur(4px)' }}
+                        />
+                  )}
+
                   <aside style={{
-                        width: isOpen ? (isMobile ? '280px' : '280px') : (isMobile ? '0px' : '90px'),
+                        width: isOpen ? '280px' : (isMobile ? '0px' : '90px'),
                         position: isMobile ? 'fixed' : 'relative',
                         backgroundColor: '#0f172a',
                         borderRight: '2px solid #1e293b',
@@ -69,26 +80,27 @@ export default function AdminLayout({ children }) {
                         display: 'flex', flexDirection: 'column', zIndex: 1000, height: '100vh',
                         transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
                   }}>
-                        <div style={{ height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px', borderBottom: '1px solid #1e293b' }}>
+                        <div style={{ height: '90px', display: 'flex', alignItems: 'center', justifyContent: isOpen ? 'flex-start' : 'center', padding: '0 20px', borderBottom: '1px solid #1e293b' }}>
                               <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-                                    <div style={{ padding: '10px', backgroundColor: '#0ea5e9', borderRadius: '14px', boxShadow: '0 0 20px #0ea5e9' }}>
+                                    <div style={{ padding: '10px', backgroundColor: '#0ea5e9', borderRadius: '14px', boxShadow: '0 0 20px rgba(14, 165, 233, 0.4)' }}>
                                           <ShieldCheck size={26} color="#ffffff" />
                                     </div>
                                     {isOpen && <span style={{ marginLeft: '15px', fontWeight: '900', fontSize: '20px', color: '#38bdf8', letterSpacing: '2px' }}>CORE_HUB</span>}
                               </Link>
                         </div>
 
-                        <nav style={{ flex: 1, padding: '20px 15px', overflowY: 'auto' }}>
+                        <nav style={{ flex: 1, padding: '20px 15px', overflowY: 'auto', overflowX: 'hidden' }}>
                               {menu.map((item) => (
                                     <Link key={item.name} href={item.href} onClick={() => isMobile && setIsOpen(false)} style={{
                                           display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', borderRadius: '15px', textDecoration: 'none', marginBottom: '10px',
                                           backgroundColor: pathname === item.href ? '#3b82f6' : 'transparent',
                                           color: pathname === item.href ? '#ffffff' : '#94a3b8',
                                           boxShadow: pathname === item.href ? '0 10px 15px -3px rgba(59, 130, 246, 0.4)' : 'none',
-                                          transition: '0.2s'
+                                          transition: '0.2s',
+                                          justifyContent: isOpen ? 'flex-start' : 'center'
                                     }}>
-                                          <span style={{ color: pathname === item.href ? '#ffffff' : '#38bdf8' }}>{item.icon}</span>
-                                          {isOpen && <span style={{ fontSize: '14px', fontWeight: '800', letterSpacing: '1px' }}>{item.name}</span>}
+                                          <span style={{ color: pathname === item.href ? '#ffffff' : '#38bdf8', flexShrink: 0 }}>{item.icon}</span>
+                                          {isOpen && <span style={{ fontSize: '14px', fontWeight: '800', letterSpacing: '1px', whiteSpace: 'nowrap' }}>{item.name}</span>}
                                     </Link>
                               ))}
                         </nav>

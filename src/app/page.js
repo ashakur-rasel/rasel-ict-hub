@@ -23,6 +23,8 @@ import {
   UserRoundCheck,
   Download,
   Star,
+  Eye,
+  ArrowRight
 } from "lucide-react";
 import Image from "next/image";
 
@@ -30,6 +32,10 @@ export default function Home() {
   const [currentSpeech, setCurrentSpeech] = useState(0);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+
+  // --- Dynamic Blog States ---
+  const [blogs, setBlogs] = useState([]);
+  const [blogLoading, setBlogLoading] = useState(true);
 
   // --- PWA Install States ---
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -82,12 +88,33 @@ export default function Home() {
     "Success is a series of small wins. Keep coding! 🌟",
   ];
 
+  // Helper for Drive Images
+  const getDriveImageUrl = (link) => {
+    if (!link) return "/placeholder.jpg";
+    const id = link.match(/[-\w]{25,}/);
+    return id ? `https://lh3.googleusercontent.com/u/0/d/${id[0]}` : link;
+  };
+
   useEffect(() => {
     setIsMounted(true);
     const timer = setInterval(() => {
       setCurrentSpeech((prev) => (prev + 1) % speeches.length);
     }, 4000);
     initShuffle();
+
+    // Fetch Dynamic Blogs
+    const fetchBlogs = async () => {
+      try {
+        const res = await fetch("/api/blogs?limit=6", { cache: 'no-store' });
+        const data = await res.json();
+        setBlogs(data.blogs || []);
+      } catch (e) {
+        console.error("Pulse fetch failed");
+      } finally {
+        setBlogLoading(false);
+      }
+    };
+    fetchBlogs();
 
     // --- PWA Listener ---
     window.addEventListener("beforeinstallprompt", (e) => {
@@ -459,32 +486,81 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Tech Blog */}
+      {/* Tech Blog (DYNAMIC SECTION) */}
       <section id="blog" className="py-24 px-4 md:px-6 relative z-20">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-4 mb-12">
-            <Newspaper size={32} className="text-purple-500" />
-            <h3 className="text-3xl md:text-4xl font-black">Technology Pulse</h3>
+          <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center gap-4">
+              <Newspaper size={32} className="text-purple-500" />
+              <h3 className="text-3xl md:text-4xl font-black">Technology Pulse</h3>
+            </div>
+            <Link href="/blogs" className="text-blue-400 font-bold flex items-center gap-2 hover:translate-x-2 transition">
+              SEE_ALL <ArrowRight size={18} />
+            </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="group relative overflow-hidden rounded-[2rem] h-64 bg-slate-800 border border-white/10">
-              <div className="absolute inset-0 bg-blue-600/20 group-hover:bg-blue-600/40 transition duration-500"></div>
-              <div className="absolute bottom-6 left-6 z-20">
-                <span className="bg-blue-600 text-[10px] px-3 py-1 rounded-md uppercase font-black tracking-tighter shadow-lg">New Update</span>
-                <h4 className="text-xl md:text-2xl font-black mt-2 text-white">The Future of AI in Education</h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {blogLoading ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="h-96 rounded-[2rem] bg-slate-800 animate-pulse border border-white/10" />
+              ))
+            ) : blogs.length > 0 ? (
+              blogs.map((blog) => (
+                <Link key={blog._id} href={`/blogs/${blog._id}`}>
+                  <motion.div
+                    whileHover={{ y: -10 }}
+                    className="group relative overflow-hidden rounded-[2rem] h-[28rem] bg-slate-800 border border-white/10 cursor-pointer shadow-2xl flex flex-col justify-end"
+                  >
+                    {/* Background Image */}
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-110"
+                      style={{ backgroundImage: `url(${getDriveImageUrl(blog.thumbnail)})` }}
+                    />
+
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent"></div>
+
+                    {/* Hover Glow Border */}
+                    <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-500/30 rounded-[2rem] transition duration-500"></div>
+
+                    <div className="relative z-20 p-8 w-full">
+                      <div className="flex items-center gap-3 mb-4 flex-wrap">
+                        {/* ডাইনামিক ক্যাটাগরি: যদি ডাটা থাকে তবেই দেখাবে */}
+                        {blog.category && blog.category.trim() !== "" && (
+                          <span className="bg-blue-600 text-[10px] px-3 py-1 rounded-md uppercase font-black tracking-tighter shadow-lg backdrop-blur-md border border-blue-400/30">
+                            {blog.category}
+                          </span>
+                        )}
+
+                        <span className="flex items-center gap-1.5 text-gray-300 text-[10px] font-bold bg-white/5 px-2.5 py-1 rounded-md backdrop-blur-md border border-white/10">
+                          <Eye size={12} className="text-blue-400" /> {blog.views} <span className="text-gray-500 ml-1">VIEWS</span>
+                        </span>
+                      </div>
+
+                      <h4 className="text-2xl md:text-3xl font-black text-white line-clamp-2 leading-tight group-hover:text-blue-400 transition duration-300">
+                        {blog.title}
+                      </h4>
+
+                      {/* Description: হোভারের আগেই দেখা যাবে */}
+                      <p className="text-sm text-gray-400 mt-4 line-clamp-3 transition-all duration-500 group-hover:text-gray-200 leading-relaxed">
+                        {blog.content.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                      </p>
+
+                      <div className="mt-6 flex items-center gap-2 text-blue-400 text-xs font-black opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        DECRYPT_FULL_PULSE <ArrowRight size={14} />
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-24 bg-slate-900/50 rounded-[3rem] border-2 border-dashed border-white/5 font-mono text-gray-600 tracking-widest">
+                DATABASE_EMPTY: NO_SIGNALS_DETECTED
               </div>
-            </div>
-            <div className="group relative overflow-hidden rounded-[2rem] h-64 bg-slate-800 border border-white/10">
-              <div className="absolute inset-0 bg-purple-600/20 group-hover:bg-purple-600/40 transition duration-500"></div>
-              <div className="absolute bottom-6 left-6 z-20">
-                <span className="bg-purple-600 text-[10px] px-3 py-1 rounded-md uppercase font-black tracking-tighter shadow-lg">Cyber Security</span>
-                <h4 className="text-xl md:text-2xl font-black mt-2 text-white">Protecting Digital Identity</h4>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
-
       {/* Footer */}
       <footer id="contact" className="bg-slate-950 pt-20 pb-10 px-6 relative z-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
@@ -511,7 +587,7 @@ export default function Home() {
   );
 }
 
-// --- Minimax Logic ---
+// --- Minimax Logic (Remains Unchanged) ---
 function getBestMove(board) {
   let bestScore = -Infinity;
   let move = -1;
