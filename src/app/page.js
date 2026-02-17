@@ -332,7 +332,7 @@ export default function Home() {
             <div className="relative group">
               <div className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-1000"></div>
               <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-slate-900 shadow-2xl">
-                <Image src="/instructor.jpg" alt="Ashakur Rahaman Rasel" width={400} height={400} priority className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                <Image src="/instructor.png" alt="Ashakur Rahaman Rasel" width={400} height={400} priority className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
               </div>
               <div className="absolute -bottom-2 -right-2 bg-blue-600 px-4 py-2 rounded-xl font-black text-xs shadow-lg rotate-12">10+ YRS EXP</div>
             </div>
