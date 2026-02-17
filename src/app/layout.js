@@ -18,13 +18,22 @@ const rajdhani = Rajdhani({
   variable: "--font-rajdhani",
 });
 
-// Combined Metadata - Only one export allowed
+// ১. metadata থেকে themeColor এবং viewport সরিয়ে ফেলা হয়েছে
 export const metadata = {
   title: "Rasel's ICT Hub",
   description: "Next-Generation Learning Management System",
   manifest: "/manifest.json",
+  icons: {
+    apple: "/icon-192x192.png",
+  },
+};
+
+// ২. আলাদাভাবে viewport এক্সপোর্ট করা হলো (এতে এরর থাকবে না)
+export const viewport = {
   themeColor: "#0ea5e9",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }) {
