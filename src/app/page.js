@@ -27,6 +27,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import Image from "next/image";
+import ChatBot from "@/components/ChatBot";
 
 export default function Home() {
   const [currentSpeech, setCurrentSpeech] = useState(0);
@@ -561,6 +562,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Chatbot */}
+      <ChatBot />
+
       {/* Footer */}
       <footer id="contact" className="bg-slate-950 pt-20 pb-10 px-6 relative z-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
